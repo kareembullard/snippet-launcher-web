@@ -3,275 +3,5444 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Snippet Launcher</title>
-<meta name="description" content="Instant fuzzy-search launcher for regex patterns, Python snippets, and keyboard shortcuts — type to filter, click to copy.">
+<title>Snippet & Shortcut Launcher</title>
+<meta name="description" content="Kareem Bullard's real shortcut, hotkey, AI prompt, regex, and Python utility catalog — search and copy in one keystroke.">
 <style>
   :root {
-    --bg: #f7f8fa;
-    --surface: #ffffff;
-    --border: #e2e5ea;
-    --text: #1a1d23;
-    --text-dim: #6b7280;
-    --accent: #2563eb;
-    --accent-dim: #dbeafe;
-    --radius: 10px;
-    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
-    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --bg: #f7f8fa; --surface: #ffffff; --border: #e2e5ea; --text: #1a1d23; --text-dim: #6b7280;
+    --accent: #2563eb; --accent-dim: #dbeafe; --radius: 10px; --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   }
   @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0f1115;
-      --surface: #181b21;
-      --border: #2a2e37;
-      --text: #e5e7eb;
-      --text-dim: #9aa1ad;
-      --accent: #60a5fa;
-      --accent-dim: #1e3a5f;
-    }
+    :root { --bg: #0f1115; --surface: #181b21; --border: #2a2e37; --text: #e5e7eb; --text-dim: #9aa1ad; --accent: #60a5fa; --accent-dim: #1e3a5f; }
   }
   * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.5;
-  }
-  .wrap { max-width: 760px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
-  header { margin-bottom: 1.5rem; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
   h1 { font-size: 1.5rem; margin: 0 0 .25rem; }
-  .sub { color: var(--text-dim); font-size: .92rem; margin: 0; }
-  .search-box {
-    width: 100%; padding: .75rem 1rem; font-size: 1.05rem;
-    border: 1px solid var(--border); border-radius: var(--radius);
-    background: var(--surface); color: var(--text); outline: none;
-  }
-  .search-box:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
-  .meta-row { display: flex; justify-content: space-between; align-items: center; margin: .75rem 0 .5rem; font-size: .8rem; color: var(--text-dim); }
-  .filters { display: flex; gap: .4rem; flex-wrap: wrap; }
-  .chip {
-    border: 1px solid var(--border); background: var(--surface); color: var(--text-dim);
-    padding: .2rem .65rem; border-radius: 999px; font-size: .78rem; cursor: pointer; user-select: none;
-  }
-  .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-  ul.results { list-style: none; margin: 0; padding: 0; }
-  li.entry {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: .7rem .9rem; margin-bottom: .5rem; cursor: pointer; transition: border-color .1s;
-  }
-  li.entry.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
-  li.entry .row1 { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
-  li.entry .title { font-weight: 600; font-size: .95rem; }
-  li.entry .kind { font-size: .7rem; color: var(--text-dim); border: 1px solid var(--border); border-radius: 4px; padding: .05rem .4rem; white-space: nowrap; }
-  li.entry .body { font-family: var(--mono); font-size: .82rem; color: var(--text-dim); margin-top: .3rem; white-space: pre-wrap; word-break: break-word; max-height: 4.5em; overflow: hidden; }
-  .empty { text-align: center; color: var(--text-dim); padding: 2.5rem 0; }
-  .toast {
-    position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(120%);
-    background: var(--text); color: var(--bg); padding: .55rem 1.1rem; border-radius: 999px;
-    font-size: .85rem; box-shadow: var(--shadow); transition: transform .18s ease-out; pointer-events: none;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); }
+  .sub { color: var(--text-dim); font-size: .92rem; margin: 0 0 1rem; }
+  .privacy-note { font-size: .78rem; color: var(--text-dim); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: .6rem .8rem; margin-bottom: 1.25rem; }
+
+  .tabs { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
+  .tab { padding: .35rem .75rem; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); font-size: .82rem; cursor: pointer; user-select: none; }
+  .tab.active { background: var(--accent-dim); color: var(--accent); border-color: transparent; font-weight: 600; }
+  .tab .n { opacity: .7; margin-left: .3rem; }
+
+  input[type=search] { width: 100%; padding: .65rem .85rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); font-size: .98rem; margin-bottom: .8rem; }
+  input[type=search]:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+  .status { font-size: .8rem; color: var(--text-dim); margin-bottom: .6rem; }
+
+  .list { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); max-height: 46vh; overflow-y: auto; }
+  .row { padding: .55rem .85rem; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; align-items: baseline; gap: .8rem; }
+  .row:last-child { border-bottom: none; }
+  .row:hover { background: var(--bg); }
+  .row.selected { background: var(--accent-dim); }
+  .row .title { font-size: .9rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .meta { font-size: .74rem; color: var(--text-dim); white-space: nowrap; flex-shrink: 0; }
+  .empty { text-align: center; color: var(--text-dim); padding: 2rem 0; }
+
+  .preview { margin-top: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+  .preview .ph-title { font-weight: 700; font-size: 1rem; margin-bottom: .3rem; }
+  .preview .ph-meta { font-size: .78rem; color: var(--text-dim); margin-bottom: .7rem; }
+  .preview .ph-body { font-family: var(--mono); font-size: .85rem; white-space: pre-wrap; word-break: break-word; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: .7rem .85rem; max-height: 220px; overflow-y: auto; }
+  .preview .truncated-note { font-size: .76rem; color: var(--text-dim); margin-top: .4rem; font-style: italic; }
+  .copy-row { display: flex; gap: .6rem; align-items: center; margin-top: .7rem; }
+  .btn { padding: .5rem 1rem; border-radius: var(--radius); border: 1px solid var(--border); background: var(--accent); color: #fff; font-size: .85rem; cursor: pointer; font-weight: 600; }
+  .btn:hover { opacity: .9; }
+  .copy-hint { font-size: .78rem; color: var(--text-dim); }
+  .copy-hint.copied { color: var(--accent); font-weight: 600; }
+
+  kbd { font-family: var(--mono); background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: .05rem .35rem; font-size: .78rem; }
+
   footer { margin-top: 2.5rem; text-align: center; font-size: .78rem; color: var(--text-dim); }
   footer a { color: var(--text-dim); }
-  kbd { font-family: var(--mono); font-size: .75rem; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; padding: .05rem .35rem; background: var(--bg); }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <h1>🔎 Snippet Launcher</h1>
-    <p class="sub">Type to filter regex patterns, Python snippets, and keyboard shortcuts. Click a result (or press <kbd>Enter</kbd>) to copy it.</p>
-  </header>
+  <h1>⌨️ Snippet & Shortcut Launcher</h1>
+  <p class="sub">Search my real hotkeys, AI prompts, regex tokens, Python utilities, and text-expansion shortcuts — <kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to copy.</p>
+  <div class="privacy-note">This is my real reference catalog — 564 entries pulled from my personal notes and Airtable workspace, published deliberately. A few AI-prompt entries have truncated content in my source notes; those are shown with a note rather than filled in.</div>
 
-  <input id="search" class="search-box" type="search" placeholder="Search…" autofocus autocomplete="off">
+  <div class="tabs" id="tabs"></div>
+  <input type="search" id="search" placeholder="Search… (e.g. “split view”, “lazy match”, “smt”, “csv”)" autofocus>
+  <div class="status" id="status"></div>
+  <div class="list" id="list"></div>
+  <div class="empty" id="empty-msg" style="display:none">No matches.</div>
 
-  <div class="meta-row">
-    <span id="count"></span>
-    <div class="filters" id="filters"></div>
-  </div>
-
-  <ul class="results" id="results"></ul>
-  <div class="empty" id="empty" style="display:none">No matches.</div>
+  <div class="preview" id="preview" style="display:none"></div>
 
   <footer>
-    Generic public demo — no personal data. Source: <a href="https://github.com/kareembullard/snippet-launcher-web" target="_blank" rel="noopener">snippet-launcher-web</a>
+    Kareem Bullard's shortcut & prompt catalog. Source: <a href="https://github.com/kareembullard/snippet-launcher-web" target="_blank" rel="noopener">snippet-launcher-web</a>
   </footer>
 </div>
 
-<div class="toast" id="toast"></div>
-
 <script>
-// ---------------------------------------------------------------------
-// Data: generic, publicly-useful reference entries. No personal content.
-// ---------------------------------------------------------------------
+// Real shortcut & prompt catalog (Kareem Bullard) — built from System_Notes markdown files + Airtable Index-Shortcuts base.
 const ENTRIES = [
-  // --- Regex ---
-  { kind: "Regex", title: "Email address", body: "^[\\w.+-]+@[\\w-]+\\.[a-zA-Z]{2,}$", tags: "email validate" },
-  { kind: "Regex", title: "URL (http/https)", body: "https?:\\/\\/[^\\s]+", tags: "url link web" },
-  { kind: "Regex", title: "IPv4 address", body: "\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b", tags: "ip network" },
-  { kind: "Regex", title: "US phone number", body: "\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}", tags: "phone number" },
-  { kind: "Regex", title: "Date (YYYY-MM-DD)", body: "\\d{4}-\\d{2}-\\d{2}", tags: "date iso" },
-  { kind: "Regex", title: "Hex color code", body: "#(?:[0-9a-fA-F]{3}){1,2}\\b", tags: "color css hex" },
-  { kind: "Regex", title: "Digits only", body: "^\\d+$", tags: "number digits" },
-  { kind: "Regex", title: "Trim whitespace (both ends)", body: "^\\s+|\\s+$", tags: "whitespace trim" },
-  { kind: "Regex", title: "Word boundary", body: "\\bword\\b", tags: "boundary word" },
-  { kind: "Regex", title: "Non-greedy match", body: ".*?", tags: "lazy nongreedy" },
-  { kind: "Regex", title: "Named capture group", body: "(?<year>\\d{4})-(?<month>\\d{2})-(?<day>\\d{2})", tags: "capture group named" },
-  { kind: "Regex", title: "Positive lookahead", body: "foo(?=bar)", tags: "lookahead" },
-  { kind: "Regex", title: "Positive lookbehind", body: "(?<=foo)bar", tags: "lookbehind" },
-  { kind: "Regex", title: "Slug / kebab-case", body: "^[a-z0-9]+(?:-[a-z0-9]+)*$", tags: "slug kebab url" },
-  { kind: "Regex", title: "Strip HTML tags", body: "<[^>]*>", tags: "html strip tags" },
-
-  // --- Python ---
-  { kind: "Python", title: "Read CSV into list of dicts", body: "import csv\n\nwith open(\"file.csv\", newline=\"\", encoding=\"utf-8\") as f:\n    rows = list(csv.DictReader(f))", tags: "csv read file" },
-  { kind: "Python", title: "Write JSON to file", body: "import json\n\nwith open(\"out.json\", \"w\", encoding=\"utf-8\") as f:\n    json.dump(data, f, indent=2)", tags: "json write file" },
-  { kind: "Python", title: "Flatten a nested list", body: "def flatten(nested):\n    return [x for sub in nested for x in sub]", tags: "list flatten" },
-  { kind: "Python", title: "Dedupe list, preserve order", body: "def dedupe(items):\n    seen = set()\n    return [x for x in items if not (x in seen or seen.add(x))]", tags: "dedupe unique list" },
-  { kind: "Python", title: "Try/except with logging", body: "import logging\n\ntry:\n    risky_call()\nexcept Exception:\n    logging.exception(\"risky_call failed\")", tags: "exception error logging" },
-  { kind: "Python", title: "Context manager for a file", body: "with open(\"file.txt\", encoding=\"utf-8\") as f:\n    text = f.read()", tags: "file open context" },
-  { kind: "Python", title: "Simple argparse skeleton", body: "import argparse\n\nparser = argparse.ArgumentParser()\nparser.add_argument(\"--name\", required=True)\nargs = parser.parse_args()", tags: "argparse cli" },
-  { kind: "Python", title: "List comprehension with filter", body: "evens = [x for x in range(20) if x % 2 == 0]", tags: "comprehension filter list" },
-  { kind: "Python", title: "Dataclass definition", body: "from dataclasses import dataclass\n\n@dataclass\nclass Point:\n    x: float\n    y: float", tags: "dataclass class" },
-  { kind: "Python", title: "Timestamp string (ISO)", body: "from datetime import datetime\n\ntimestamp = datetime.now().isoformat(timespec=\"seconds\")", tags: "datetime timestamp iso" },
-  { kind: "Python", title: "Recursive directory walk", body: "import os\n\nfor root, dirs, files in os.walk(\".\"):\n    for name in files:\n        print(os.path.join(root, name))", tags: "walk directory files" },
-  { kind: "Python", title: "Virtual environment (Windows)", body: "python -m venv .venv\n.venv\\Scripts\\Activate.ps1\npip install -r requirements.txt", tags: "venv virtualenv setup" },
-
-  // --- Shortcuts ---
-  { kind: "Shortcut", title: "Command palette (VS Code)", body: "Ctrl+Shift+P", tags: "vscode command palette" },
-  { kind: "Shortcut", title: "Quick open file (VS Code)", body: "Ctrl+P", tags: "vscode open file" },
-  { kind: "Shortcut", title: "Toggle terminal (VS Code)", body: "Ctrl+`", tags: "vscode terminal" },
-  { kind: "Shortcut", title: "Toggle line comment", body: "Ctrl+/", tags: "comment code editor" },
-  { kind: "Shortcut", title: "New browser tab", body: "Ctrl+T", tags: "browser tab" },
-  { kind: "Shortcut", title: "Reopen closed tab", body: "Ctrl+Shift+T", tags: "browser tab reopen" },
-  { kind: "Shortcut", title: "Focus address bar", body: "Ctrl+L", tags: "browser address bar" },
-  { kind: "Shortcut", title: "Close current tab", body: "Ctrl+W", tags: "browser tab close" },
-  { kind: "Shortcut", title: "Switch application", body: "Alt+Tab", tags: "windows switch app" },
-  { kind: "Shortcut", title: "Show desktop", body: "Win+D", tags: "windows desktop" },
-  { kind: "Shortcut", title: "Lock screen", body: "Win+L", tags: "windows lock" },
-  { kind: "Shortcut", title: "Snap window left/right", body: "Win+Left / Win+Right", tags: "windows snap" },
-  { kind: "Shortcut", title: "Rename file (Explorer)", body: "F2", tags: "windows explorer rename" },
-  { kind: "Shortcut", title: "Multi-cursor: add cursor below", body: "Ctrl+Alt+Down", tags: "vscode multicursor" },
-  { kind: "Shortcut", title: "Copy line down (VS Code)", body: "Shift+Alt+Down", tags: "vscode duplicate line" },
-  { kind: "Shortcut", title: "Undo / Redo", body: "Ctrl+Z / Ctrl+Y", tags: "undo redo" },
+ {
+  "id": "hk-1",
+  "category": "Hotkeys",
+  "title": "Ctrl + O — Quick open dialog",
+  "body": "Ctrl + O",
+  "group": "Amplenote",
+  "context": "Navigation",
+  "extra": "Amplenote Navigation"
+ },
+ {
+  "id": "hk-2",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + , — Return to previous note",
+  "body": "Ctrl + Shift + ,",
+  "group": "Amplenote",
+  "context": "Navigation",
+  "extra": "Amplenote Navigation"
+ },
+ {
+  "id": "hk-3",
+  "category": "Hotkeys",
+  "title": "[ — Turn selected text into a note link or create a new note",
+  "body": "[",
+  "group": "Amplenote",
+  "context": "Navigation",
+  "extra": "Amplenote Navigation"
+ },
+ {
+  "id": "hk-4",
+  "category": "Hotkeys",
+  "title": "[[= — Copy content from another note",
+  "body": "[[=",
+  "group": "Amplenote",
+  "context": "Navigation",
+  "extra": "Amplenote Navigation"
+ },
+ {
+  "id": "hk-5",
+  "category": "Hotkeys",
+  "title": "# — Link to a section in that note",
+  "body": "#",
+  "group": "Amplenote",
+  "context": "Navigation",
+  "extra": "Amplenote Navigation"
+ },
+ {
+  "id": "hk-6",
+  "category": "Hotkeys",
+  "title": "Ctrl + Space — Complete a task",
+  "body": "Ctrl + Space",
+  "group": "Amplenote",
+  "context": "Tasks",
+  "extra": "Amplenote Tasks"
+ },
+ {
+  "id": "hk-7",
+  "category": "Hotkeys",
+  "title": "Ctrl + . — Open/Close task details",
+  "body": "Ctrl + .",
+  "group": "Amplenote",
+  "context": "Tasks",
+  "extra": "Amplenote Tasks"
+ },
+ {
+  "id": "hk-8",
+  "category": "Hotkeys",
+  "title": "Alt + Shift + U — Mark a task as Urgent",
+  "body": "Alt + Shift + U",
+  "group": "Amplenote",
+  "context": "Tasks",
+  "extra": "Amplenote Tasks"
+ },
+ {
+  "id": "hk-9",
+  "category": "Hotkeys",
+  "title": "Alt + Shift + I — Mark a task as Important",
+  "body": "Alt + Shift + I",
+  "group": "Amplenote",
+  "context": "Tasks",
+  "extra": "Amplenote Tasks"
+ },
+ {
+  "id": "hk-a",
+  "category": "Hotkeys",
+  "title": "! — Open task commands",
+  "body": "!",
+  "group": "Amplenote",
+  "context": "Tasks",
+  "extra": "Amplenote Tasks"
+ },
+ {
+  "id": "hk-b",
+  "category": "Hotkeys",
+  "title": "Ctrl + K — Add a link or rich footnote",
+  "body": "Ctrl + K",
+  "group": "Amplenote",
+  "context": "Formatting",
+  "extra": "Amplenote Formatting"
+ },
+ {
+  "id": "hk-c",
+  "category": "Hotkeys",
+  "title": "Ctrl + , — Expand or collapse sub-bullets",
+  "body": "Ctrl + ,",
+  "group": "Amplenote",
+  "context": "Formatting",
+  "extra": "Amplenote Formatting"
+ },
+ {
+  "id": "hk-d",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + \"+\" — Split View",
+  "body": "Ctrl + Shift + \"+\"",
+  "group": "Arc Browser",
+  "context": "General",
+  "extra": "Arc Browser General"
+ },
+ {
+  "id": "hk-e",
+  "category": "Hotkeys",
+  "title": "Ctrl + S — Toggle sidebar visibility",
+  "body": "Ctrl + S",
+  "group": "Arc Browser",
+  "context": "General",
+  "extra": "Arc Browser General"
+ },
+ {
+  "id": "hk-f",
+  "category": "Hotkeys",
+  "title": "Ctrl + T — Open the command bar for searching tabs, folders, extensions, etc.",
+  "body": "Ctrl + T",
+  "group": "Arc Browser",
+  "context": "General",
+  "extra": "Arc Browser General"
+ },
+ {
+  "id": "hk-g",
+  "category": "Hotkeys",
+  "title": "Ctrl + Alt + Direction Arrow — Move between tabs",
+  "body": "Ctrl + Alt + Direction Arrow",
+  "group": "Arc Browser",
+  "context": "General",
+  "extra": "Arc Browser General"
+ },
+ {
+  "id": "hk-h",
+  "category": "Hotkeys",
+  "title": "Alt + Click on any tab — Open split view to interact with two pages side by side",
+  "body": "Alt + Click on any tab",
+  "group": "Arc Browser",
+  "context": "General",
+  "extra": "Arc Browser General"
+ },
+ {
+  "id": "hk-i",
+  "category": "Hotkeys",
+  "title": "Shift + Click on any tab — Open tabs in popup windows",
+  "body": "Shift + Click on any tab",
+  "group": "Arc Browser",
+  "context": "General",
+  "extra": "Arc Browser General"
+ },
+ {
+  "id": "hk-j",
+  "category": "Hotkeys",
+  "title": "Ctrl + F — Ask a question about the current webpage content",
+  "body": "Ctrl + F",
+  "group": "Arc Browser",
+  "context": "General",
+  "extra": "Arc Browser General"
+ },
+ {
+  "id": "hk-k",
+  "category": "Hotkeys",
+  "title": "Ctrl + T (in command bar) — Open ChatGPT directly",
+  "body": "Ctrl + T (in command bar)",
+  "group": "Arc Browser",
+  "context": "General",
+  "extra": "Arc Browser General"
+ },
+ {
+  "id": "hk-l",
+  "category": "Hotkeys",
+  "title": "Ctrl + Tab — Cycle through different tabs",
+  "body": "Ctrl + Tab",
+  "group": "Arc Browser",
+  "context": "General",
+  "extra": "Arc Browser General"
+ },
+ {
+  "id": "hk-m",
+  "category": "Hotkeys",
+  "title": "Ctrl + H — Open History",
+  "body": "Ctrl + H",
+  "group": "Arc Browser",
+  "context": "General",
+  "extra": "Arc Browser General"
+ },
+ {
+  "id": "hk-n",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + C — Copy current tab URL",
+  "body": "Ctrl + Shift + C",
+  "group": "Arc Browser",
+  "context": "General",
+  "extra": "Arc Browser General"
+ },
+ {
+  "id": "hk-o",
+  "category": "Hotkeys",
+  "title": "Ctrl + L or Alt + D — Change current tab URL",
+  "body": "Ctrl + L or Alt + D",
+  "group": "Arc Browser",
+  "context": "General",
+  "extra": "Arc Browser General"
+ },
+ {
+  "id": "hk-p",
+  "category": "Hotkeys",
+  "title": "Alt + Right Arrow (→) — Go forward in tab history",
+  "body": "Alt + Right Arrow (→)",
+  "group": "Arc Browser",
+  "context": "General",
+  "extra": "Arc Browser General"
+ },
+ {
+  "id": "hk-q",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + 1 — Switch Split View focus",
+  "body": "Ctrl + Shift + 1",
+  "group": "Arc Browser",
+  "context": "General",
+  "extra": "Arc Browser General"
+ },
+ {
+  "id": "hk-r",
+  "category": "Hotkeys",
+  "title": "Alt + 1 — Admin",
+  "body": "Alt + 1",
+  "group": "Arc Browser",
+  "context": "Arc Spaces",
+  "extra": "Arc Browser Arc Spaces"
+ },
+ {
+  "id": "hk-s",
+  "category": "Hotkeys",
+  "title": "Alt + 2 — Personal",
+  "body": "Alt + 2",
+  "group": "Arc Browser",
+  "context": "Arc Spaces",
+  "extra": "Arc Browser Arc Spaces"
+ },
+ {
+  "id": "hk-t",
+  "category": "Hotkeys",
+  "title": "Alt + 3 — Business",
+  "body": "Alt + 3",
+  "group": "Arc Browser",
+  "context": "Arc Spaces",
+  "extra": "Arc Browser Arc Spaces"
+ },
+ {
+  "id": "hk-u",
+  "category": "Hotkeys",
+  "title": "Alt + 4 — Career",
+  "body": "Alt + 4",
+  "group": "Arc Browser",
+  "context": "Arc Spaces",
+  "extra": "Arc Browser Arc Spaces"
+ },
+ {
+  "id": "hk-v",
+  "category": "Hotkeys",
+  "title": "Alt + 5 — Network",
+  "body": "Alt + 5",
+  "group": "Arc Browser",
+  "context": "Arc Spaces",
+  "extra": "Arc Browser Arc Spaces"
+ },
+ {
+  "id": "hk-w",
+  "category": "Hotkeys",
+  "title": "Alt + 6 — Production",
+  "body": "Alt + 6",
+  "group": "Arc Browser",
+  "context": "Arc Spaces",
+  "extra": "Arc Browser Arc Spaces"
+ },
+ {
+  "id": "hk-x",
+  "category": "Hotkeys",
+  "title": "Ctrl + P — Create a New Object",
+  "body": "Ctrl + P",
+  "group": "Capacities",
+  "context": "",
+  "extra": "Capacities "
+ },
+ {
+  "id": "hk-y",
+  "category": "Hotkeys",
+  "title": "Ctrl + U — Create New Content",
+  "body": "Ctrl + U",
+  "group": "Capacities",
+  "context": "",
+  "extra": "Capacities "
+ },
+ {
+  "id": "hk-z",
+  "category": "Hotkeys",
+  "title": "Ctrl + K — Open Search",
+  "body": "Ctrl + K",
+  "group": "Capacities",
+  "context": "",
+  "extra": "Capacities "
+ },
+ {
+  "id": "hk-10",
+  "category": "Hotkeys",
+  "title": "@ — Create a Link",
+  "body": "@",
+  "group": "Capacities",
+  "context": "",
+  "extra": "Capacities "
+ },
+ {
+  "id": "hk-11",
+  "category": "Hotkeys",
+  "title": "Ctrl + Alt + C — Quick Chat",
+  "body": "Ctrl + Alt + C",
+  "group": "ChatGPT",
+  "context": "",
+  "extra": "ChatGPT "
+ },
+ {
+  "id": "hk-12",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + C — Copy the last code block to your clipboard",
+  "body": "Ctrl + Shift + C",
+  "group": "ChatGPT",
+  "context": "",
+  "extra": "ChatGPT "
+ },
+ {
+  "id": "hk-13",
+  "category": "Hotkeys",
+  "title": "Ctrl + / — Toggle comment in code blocks (depends on the editor you're using)",
+  "body": "Ctrl + /",
+  "group": "ChatGPT",
+  "context": "",
+  "extra": "ChatGPT "
+ },
+ {
+  "id": "hk-14",
+  "category": "Hotkeys",
+  "title": "Ctrl + K — Insert a link (depends on the editor you're using)",
+  "body": "Ctrl + K",
+  "group": "ChatGPT",
+  "context": "",
+  "extra": "ChatGPT "
+ },
+ {
+  "id": "hk-15",
+  "category": "Hotkeys",
+  "title": "Ctrl + Enter — Send your message (works in some chat interfaces)",
+  "body": "Ctrl + Enter",
+  "group": "ChatGPT",
+  "context": "",
+  "extra": "ChatGPT "
+ },
+ {
+  "id": "hk-16",
+  "category": "Hotkeys",
+  "title": "CD — Change directory",
+  "body": "CD",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-17",
+  "category": "Hotkeys",
+  "title": "DIR — List directory contents",
+  "body": "DIR",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-18",
+  "category": "Hotkeys",
+  "title": "COPY — Copy files",
+  "body": "COPY",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-19",
+  "category": "Hotkeys",
+  "title": "XCOPY — Copy files and directories",
+  "body": "XCOPY",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-1a",
+  "category": "Hotkeys",
+  "title": "DEL — Delete files",
+  "body": "DEL",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-1b",
+  "category": "Hotkeys",
+  "title": "RD — Remove directory",
+  "body": "RD",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-1c",
+  "category": "Hotkeys",
+  "title": "MKDIR — Make directory",
+  "body": "MKDIR",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-1d",
+  "category": "Hotkeys",
+  "title": "CLS — Clear screen",
+  "body": "CLS",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-1e",
+  "category": "Hotkeys",
+  "title": "DATE — Display/set date",
+  "body": "DATE",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-1f",
+  "category": "Hotkeys",
+  "title": "TIME — Display/set time",
+  "body": "TIME",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-1g",
+  "category": "Hotkeys",
+  "title": "ECHO — Display message",
+  "body": "ECHO",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-1h",
+  "category": "Hotkeys",
+  "title": "SET — Set environment variable",
+  "body": "SET",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-1i",
+  "category": "Hotkeys",
+  "title": "IF — Conditional command",
+  "body": "IF",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-1j",
+  "category": "Hotkeys",
+  "title": "FOR — Loop through command output",
+  "body": "FOR",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-1k",
+  "category": "Hotkeys",
+  "title": "FIND — Find text in file",
+  "body": "FIND",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-1l",
+  "category": "Hotkeys",
+  "title": "NET — Manage network resources",
+  "body": "NET",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-1m",
+  "category": "Hotkeys",
+  "title": "SHUTDOWN — Shutdown computer",
+  "body": "SHUTDOWN",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-1n",
+  "category": "Hotkeys",
+  "title": "IPCONFIG — Configure IP",
+  "body": "IPCONFIG",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-1o",
+  "category": "Hotkeys",
+  "title": "PING — Test network connection",
+  "body": "PING",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-1p",
+  "category": "Hotkeys",
+  "title": "TASKLIST — List running processes",
+  "body": "TASKLIST",
+  "group": "Command Prompt (cmd)",
+  "context": "",
+  "extra": "Command Prompt (cmd) "
+ },
+ {
+  "id": "hk-1q",
+  "category": "Hotkeys",
+  "title": "C — Compose email",
+  "body": "C",
+  "group": "Gmail",
+  "context": "",
+  "extra": "Gmail "
+ },
+ {
+  "id": "hk-1r",
+  "category": "Hotkeys",
+  "title": "Ctrl + Enter — Send email",
+  "body": "Ctrl + Enter",
+  "group": "Gmail",
+  "context": "",
+  "extra": "Gmail "
+ },
+ {
+  "id": "hk-1s",
+  "category": "Hotkeys",
+  "title": "R — Reply",
+  "body": "R",
+  "group": "Gmail",
+  "context": "",
+  "extra": "Gmail "
+ },
+ {
+  "id": "hk-1t",
+  "category": "Hotkeys",
+  "title": "Shift + R — Reply All",
+  "body": "Shift + R",
+  "group": "Gmail",
+  "context": "",
+  "extra": "Gmail "
+ },
+ {
+  "id": "hk-1u",
+  "category": "Hotkeys",
+  "title": "F — Forward",
+  "body": "F",
+  "group": "Gmail",
+  "context": "",
+  "extra": "Gmail "
+ },
+ {
+  "id": "hk-1v",
+  "category": "Hotkeys",
+  "title": "E — Archive",
+  "body": "E",
+  "group": "Gmail",
+  "context": "",
+  "extra": "Gmail "
+ },
+ {
+  "id": "hk-1w",
+  "category": "Hotkeys",
+  "title": "# or D — Delete",
+  "body": "# or D",
+  "group": "Gmail",
+  "context": "",
+  "extra": "Gmail "
+ },
+ {
+  "id": "hk-1x",
+  "category": "Hotkeys",
+  "title": "X — Select email",
+  "body": "X",
+  "group": "Gmail",
+  "context": "",
+  "extra": "Gmail "
+ },
+ {
+  "id": "hk-1y",
+  "category": "Hotkeys",
+  "title": "M — Mute",
+  "body": "M",
+  "group": "Gmail",
+  "context": "",
+  "extra": "Gmail "
+ },
+ {
+  "id": "hk-1z",
+  "category": "Hotkeys",
+  "title": "! — Mark as Spam",
+  "body": "!",
+  "group": "Gmail",
+  "context": "",
+  "extra": "Gmail "
+ },
+ {
+  "id": "hk-20",
+  "category": "Hotkeys",
+  "title": "Shift + I — Mark as Read",
+  "body": "Shift + I",
+  "group": "Gmail",
+  "context": "",
+  "extra": "Gmail "
+ },
+ {
+  "id": "hk-21",
+  "category": "Hotkeys",
+  "title": "Shift + U — Mark as Unread",
+  "body": "Shift + U",
+  "group": "Gmail",
+  "context": "",
+  "extra": "Gmail "
+ },
+ {
+  "id": "hk-22",
+  "category": "Hotkeys",
+  "title": "V or 9 — Move to Folder",
+  "body": "V or 9",
+  "group": "Gmail",
+  "context": "",
+  "extra": "Gmail "
+ },
+ {
+  "id": "hk-23",
+  "category": "Hotkeys",
+  "title": "S — Star",
+  "body": "S",
+  "group": "Gmail",
+  "context": "",
+  "extra": "Gmail "
+ },
+ {
+  "id": "hk-24",
+  "category": "Hotkeys",
+  "title": "j/k — Navigate between notes",
+  "body": "j/k",
+  "group": "Keep Notes",
+  "context": "",
+  "extra": "Keep Notes "
+ },
+ {
+  "id": "hk-25",
+  "category": "Hotkeys",
+  "title": "n/p — Navigate list items",
+  "body": "n/p",
+  "group": "Keep Notes",
+  "context": "",
+  "extra": "Keep Notes "
+ },
+ {
+  "id": "hk-26",
+  "category": "Hotkeys",
+  "title": "c — Compose new note",
+  "body": "c",
+  "group": "Keep Notes",
+  "context": "",
+  "extra": "Keep Notes "
+ },
+ {
+  "id": "hk-27",
+  "category": "Hotkeys",
+  "title": "/ — Search notes",
+  "body": "/",
+  "group": "Keep Notes",
+  "context": "",
+  "extra": "Keep Notes "
+ },
+ {
+  "id": "hk-28",
+  "category": "Hotkeys",
+  "title": "e — Archive note",
+  "body": "e",
+  "group": "Keep Notes",
+  "context": "",
+  "extra": "Keep Notes "
+ },
+ {
+  "id": "hk-29",
+  "category": "Hotkeys",
+  "title": "# — Trash note",
+  "body": "#",
+  "group": "Keep Notes",
+  "context": "",
+  "extra": "Keep Notes "
+ },
+ {
+  "id": "hk-2a",
+  "category": "Hotkeys",
+  "title": "f — Pin/Unpin notes",
+  "body": "f",
+  "group": "Keep Notes",
+  "context": "",
+  "extra": "Keep Notes "
+ },
+ {
+  "id": "hk-2b",
+  "category": "Hotkeys",
+  "title": "x — Select note",
+  "body": "x",
+  "group": "Keep Notes",
+  "context": "",
+  "extra": "Keep Notes "
+ },
+ {
+  "id": "hk-2c",
+  "category": "Hotkeys",
+  "title": "Ctrl + G — Toggle list/grid view",
+  "body": "Ctrl + G",
+  "group": "Keep Notes",
+  "context": "",
+  "extra": "Keep Notes "
+ },
+ {
+  "id": "hk-2d",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + 8 — Toggle checkboxes",
+  "body": "Ctrl + Shift + 8",
+  "group": "Keep Notes",
+  "context": "",
+  "extra": "Keep Notes "
+ },
+ {
+  "id": "hk-2e",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + B — Indent/Dedent list item",
+  "body": "Ctrl + Shift + B",
+  "group": "Keep Notes",
+  "context": "",
+  "extra": "Keep Notes "
+ },
+ {
+  "id": "hk-2f",
+  "category": "Hotkeys",
+  "title": "Ctrl + Alt + T — Open a new terminal",
+  "body": "Ctrl + Alt + T",
+  "group": "Linux",
+  "context": "Terminal Shortcuts",
+  "extra": "Linux Terminal Shortcuts"
+ },
+ {
+  "id": "hk-2g",
+  "category": "Hotkeys",
+  "title": "Ctrl + L — Clear the terminal screen",
+  "body": "Ctrl + L",
+  "group": "Linux",
+  "context": "Terminal Shortcuts",
+  "extra": "Linux Terminal Shortcuts"
+ },
+ {
+  "id": "hk-2h",
+  "category": "Hotkeys",
+  "title": "Ctrl + C — Kill the current process",
+  "body": "Ctrl + C",
+  "group": "Linux",
+  "context": "Terminal Shortcuts",
+  "extra": "Linux Terminal Shortcuts"
+ },
+ {
+  "id": "hk-2i",
+  "category": "Hotkeys",
+  "title": "Ctrl + Z — Suspend the current process",
+  "body": "Ctrl + Z",
+  "group": "Linux",
+  "context": "Terminal Shortcuts",
+  "extra": "Linux Terminal Shortcuts"
+ },
+ {
+  "id": "hk-2j",
+  "category": "Hotkeys",
+  "title": "Ctrl + R — Search command history",
+  "body": "Ctrl + R",
+  "group": "Linux",
+  "context": "Terminal Shortcuts",
+  "extra": "Linux Terminal Shortcuts"
+ },
+ {
+  "id": "hk-2k",
+  "category": "Hotkeys",
+  "title": "Up/Down Arrow — Scroll through command history",
+  "body": "Up/Down Arrow",
+  "group": "Linux",
+  "context": "Terminal Shortcuts",
+  "extra": "Linux Terminal Shortcuts"
+ },
+ {
+  "id": "hk-2l",
+  "category": "Hotkeys",
+  "title": "Tab — Auto-complete commands or file names",
+  "body": "Tab",
+  "group": "Linux",
+  "context": "Terminal Shortcuts",
+  "extra": "Linux Terminal Shortcuts"
+ },
+ {
+  "id": "hk-2m",
+  "category": "Hotkeys",
+  "title": "Ctrl + A — Move to the beginning of the line",
+  "body": "Ctrl + A",
+  "group": "Linux",
+  "context": "Text Navigation",
+  "extra": "Linux Text Navigation"
+ },
+ {
+  "id": "hk-2n",
+  "category": "Hotkeys",
+  "title": "Ctrl + E — Move to the end of the line",
+  "body": "Ctrl + E",
+  "group": "Linux",
+  "context": "Text Navigation",
+  "extra": "Linux Text Navigation"
+ },
+ {
+  "id": "hk-2o",
+  "category": "Hotkeys",
+  "title": "Ctrl + U — Cut everything before the cursor",
+  "body": "Ctrl + U",
+  "group": "Linux",
+  "context": "Text Navigation",
+  "extra": "Linux Text Navigation"
+ },
+ {
+  "id": "hk-2p",
+  "category": "Hotkeys",
+  "title": "Ctrl + K — Cut everything after the cursor",
+  "body": "Ctrl + K",
+  "group": "Linux",
+  "context": "Text Navigation",
+  "extra": "Linux Text Navigation"
+ },
+ {
+  "id": "hk-2q",
+  "category": "Hotkeys",
+  "title": "Ctrl + W — Cut the word before the cursor",
+  "body": "Ctrl + W",
+  "group": "Linux",
+  "context": "Text Navigation",
+  "extra": "Linux Text Navigation"
+ },
+ {
+  "id": "hk-2r",
+  "category": "Hotkeys",
+  "title": "Ctrl + Y — Paste the last cut text",
+  "body": "Ctrl + Y",
+  "group": "Linux",
+  "context": "Text Navigation",
+  "extra": "Linux Text Navigation"
+ },
+ {
+  "id": "hk-2s",
+  "category": "Hotkeys",
+  "title": "!! — Repeat the last command",
+  "body": "!!",
+  "group": "Linux",
+  "context": "Command Shortcuts",
+  "extra": "Linux Command Shortcuts"
+ },
+ {
+  "id": "hk-2t",
+  "category": "Hotkeys",
+  "title": "!n — Run command number n from history",
+  "body": "!n",
+  "group": "Linux",
+  "context": "Command Shortcuts",
+  "extra": "Linux Command Shortcuts"
+ },
+ {
+  "id": "hk-2u",
+  "category": "Hotkeys",
+  "title": "!string — Run the most recent command that starts with string",
+  "body": "!string",
+  "group": "Linux",
+  "context": "Command Shortcuts",
+  "extra": "Linux Command Shortcuts"
+ },
+ {
+  "id": "hk-2v",
+  "category": "Hotkeys",
+  "title": "cd ~ — Navigate to the home directory",
+  "body": "cd ~",
+  "group": "File and Directory Management",
+  "context": "",
+  "extra": "File and Directory Management "
+ },
+ {
+  "id": "hk-2w",
+  "category": "Hotkeys",
+  "title": "cd - — Navigate to the previous directory",
+  "body": "cd -",
+  "group": "File and Directory Management",
+  "context": "",
+  "extra": "File and Directory Management "
+ },
+ {
+  "id": "hk-2x",
+  "category": "Hotkeys",
+  "title": "ls -l — List files in long format",
+  "body": "ls -l",
+  "group": "File and Directory Management",
+  "context": "",
+  "extra": "File and Directory Management "
+ },
+ {
+  "id": "hk-2y",
+  "category": "Hotkeys",
+  "title": "ls -a — Show hidden files",
+  "body": "ls -a",
+  "group": "File and Directory Management",
+  "context": "",
+  "extra": "File and Directory Management "
+ },
+ {
+  "id": "hk-2z",
+  "category": "Hotkeys",
+  "title": "mkdir dirname — Create a new directory",
+  "body": "mkdir dirname",
+  "group": "File and Directory Management",
+  "context": "",
+  "extra": "File and Directory Management "
+ },
+ {
+  "id": "hk-30",
+  "category": "Hotkeys",
+  "title": "rm -r dirname — Remove a directory and its contents",
+  "body": "rm -r dirname",
+  "group": "File and Directory Management",
+  "context": "",
+  "extra": "File and Directory Management "
+ },
+ {
+  "id": "hk-31",
+  "category": "Hotkeys",
+  "title": "cp source dest — Copy files or directories",
+  "body": "cp source dest",
+  "group": "File and Directory Management",
+  "context": "",
+  "extra": "File and Directory Management "
+ },
+ {
+  "id": "hk-32",
+  "category": "Hotkeys",
+  "title": "mv source dest — Move or rename files or directories",
+  "body": "mv source dest",
+  "group": "File and Directory Management",
+  "context": "",
+  "extra": "File and Directory Management "
+ },
+ {
+  "id": "hk-33",
+  "category": "Hotkeys",
+  "title": "touch filename — Create an empty file",
+  "body": "touch filename",
+  "group": "File and Directory Management",
+  "context": "",
+  "extra": "File and Directory Management "
+ },
+ {
+  "id": "hk-34",
+  "category": "Hotkeys",
+  "title": "Ctrl + O — Save file",
+  "body": "Ctrl + O",
+  "group": "Text Editors (Nano and Vim)",
+  "context": "",
+  "extra": "Text Editors (Nano and Vim) "
+ },
+ {
+  "id": "hk-35",
+  "category": "Hotkeys",
+  "title": "Ctrl + X — Exit Nano",
+  "body": "Ctrl + X",
+  "group": "Text Editors (Nano and Vim)",
+  "context": "",
+  "extra": "Text Editors (Nano and Vim) "
+ },
+ {
+  "id": "hk-36",
+  "category": "Hotkeys",
+  "title": "i — Enter insert mode",
+  "body": "i",
+  "group": "Text Editors (Nano and Vim)",
+  "context": "",
+  "extra": "Text Editors (Nano and Vim) "
+ },
+ {
+  "id": "hk-37",
+  "category": "Hotkeys",
+  "title": "Esc + — wq: Save and quit",
+  "body": "Esc +",
+  "group": "Text Editors (Nano and Vim)",
+  "context": "",
+  "extra": "Text Editors (Nano and Vim) "
+ },
+ {
+  "id": "hk-38",
+  "category": "Hotkeys",
+  "title": "Esc + — q!: Quit without saving",
+  "body": "Esc +",
+  "group": "Text Editors (Nano and Vim)",
+  "context": "",
+  "extra": "Text Editors (Nano and Vim) "
+ },
+ {
+  "id": "hk-39",
+  "category": "Hotkeys",
+  "title": "top — Display running processes",
+  "body": "top",
+  "group": "System Monitoring",
+  "context": "",
+  "extra": "System Monitoring "
+ },
+ {
+  "id": "hk-3a",
+  "category": "Hotkeys",
+  "title": "htop — Advanced process viewer",
+  "body": "htop",
+  "group": "System Monitoring",
+  "context": "",
+  "extra": "System Monitoring "
+ },
+ {
+  "id": "hk-3b",
+  "category": "Hotkeys",
+  "title": "Ctrl + C — Exit top or htop",
+  "body": "Ctrl + C",
+  "group": "System Monitoring",
+  "context": "",
+  "extra": "System Monitoring "
+ },
+ {
+  "id": "hk-3c",
+  "category": "Hotkeys",
+  "title": "df -h — Show disk usage",
+  "body": "df -h",
+  "group": "System Monitoring",
+  "context": "",
+  "extra": "System Monitoring "
+ },
+ {
+  "id": "hk-3d",
+  "category": "Hotkeys",
+  "title": "free -h — Show memory usage",
+  "body": "free -h",
+  "group": "System Monitoring",
+  "context": "",
+  "extra": "System Monitoring "
+ },
+ {
+  "id": "hk-3e",
+  "category": "Hotkeys",
+  "title": "ps aux — Display all running processes",
+  "body": "ps aux",
+  "group": "System Monitoring",
+  "context": "",
+  "extra": "System Monitoring "
+ },
+ {
+  "id": "hk-3f",
+  "category": "Hotkeys",
+  "title": "kill -9 PID — Force kill a process by PID",
+  "body": "kill -9 PID",
+  "group": "System Monitoring",
+  "context": "",
+  "extra": "System Monitoring "
+ },
+ {
+  "id": "hk-3g",
+  "category": "Hotkeys",
+  "title": "ping hostname — Check network connectivity",
+  "body": "ping hostname",
+  "group": "Networking",
+  "context": "",
+  "extra": "Networking "
+ },
+ {
+  "id": "hk-3h",
+  "category": "Hotkeys",
+  "title": "ifconfig — Display network interfaces",
+  "body": "ifconfig",
+  "group": "Networking",
+  "context": "",
+  "extra": "Networking "
+ },
+ {
+  "id": "hk-3i",
+  "category": "Hotkeys",
+  "title": "ip a — Show IP addresses",
+  "body": "ip a",
+  "group": "Networking",
+  "context": "",
+  "extra": "Networking "
+ },
+ {
+  "id": "hk-3j",
+  "category": "Hotkeys",
+  "title": "netstat -tuln — Show active connections",
+  "body": "netstat -tuln",
+  "group": "Networking",
+  "context": "",
+  "extra": "Networking "
+ },
+ {
+  "id": "hk-3k",
+  "category": "Hotkeys",
+  "title": "ssh user@hostname — Connect to a remote server via SSH",
+  "body": "ssh user@hostname",
+  "group": "Networking",
+  "context": "",
+  "extra": "Networking "
+ },
+ {
+  "id": "hk-3l",
+  "category": "Hotkeys",
+  "title": "scp file user@hostname — /path: Securely copy files to a remote server",
+  "body": "scp file user@hostname",
+  "group": "Networking",
+  "context": "",
+  "extra": "Networking "
+ },
+ {
+  "id": "hk-3m",
+  "category": "Hotkeys",
+  "title": "wget URL — Download files from the web",
+  "body": "wget URL",
+  "group": "Networking",
+  "context": "",
+  "extra": "Networking "
+ },
+ {
+  "id": "hk-3n",
+  "category": "Hotkeys",
+  "title": "apt update — Update package list",
+  "body": "apt update",
+  "group": "Package Management (Debian/Ubuntu)",
+  "context": "",
+  "extra": "Package Management (Debian/Ubuntu) "
+ },
+ {
+  "id": "hk-3o",
+  "category": "Hotkeys",
+  "title": "apt upgrade — Upgrade installed packages",
+  "body": "apt upgrade",
+  "group": "Package Management (Debian/Ubuntu)",
+  "context": "",
+  "extra": "Package Management (Debian/Ubuntu) "
+ },
+ {
+  "id": "hk-3p",
+  "category": "Hotkeys",
+  "title": "apt install package — Install a package",
+  "body": "apt install package",
+  "group": "Package Management (Debian/Ubuntu)",
+  "context": "",
+  "extra": "Package Management (Debian/Ubuntu) "
+ },
+ {
+  "id": "hk-3q",
+  "category": "Hotkeys",
+  "title": "apt remove package — Remove a package",
+  "body": "apt remove package",
+  "group": "Package Management (Debian/Ubuntu)",
+  "context": "",
+  "extra": "Package Management (Debian/Ubuntu) "
+ },
+ {
+  "id": "hk-3r",
+  "category": "Hotkeys",
+  "title": "apt autoremove — Remove unnecessary packages",
+  "body": "apt autoremove",
+  "group": "Package Management (Debian/Ubuntu)",
+  "context": "",
+  "extra": "Package Management (Debian/Ubuntu) "
+ },
+ {
+  "id": "hk-3s",
+  "category": "Hotkeys",
+  "title": "cat filename — View file contents",
+  "body": "cat filename",
+  "group": "File Viewing",
+  "context": "",
+  "extra": "File Viewing "
+ },
+ {
+  "id": "hk-3t",
+  "category": "Hotkeys",
+  "title": "less filename — View file contents page by page",
+  "body": "less filename",
+  "group": "File Viewing",
+  "context": "",
+  "extra": "File Viewing "
+ },
+ {
+  "id": "hk-3u",
+  "category": "Hotkeys",
+  "title": "head -n N filename — View the first N lines of a file",
+  "body": "head -n N filename",
+  "group": "File Viewing",
+  "context": "",
+  "extra": "File Viewing "
+ },
+ {
+  "id": "hk-3v",
+  "category": "Hotkeys",
+  "title": "tail -n N filename — View the last N lines of a file",
+  "body": "tail -n N filename",
+  "group": "File Viewing",
+  "context": "",
+  "extra": "File Viewing "
+ },
+ {
+  "id": "hk-3w",
+  "category": "Hotkeys",
+  "title": "grep 'string' filename — Search for a string in a file",
+  "body": "grep 'string' filename",
+  "group": "File Viewing",
+  "context": "",
+  "extra": "File Viewing "
+ },
+ {
+  "id": "hk-3x",
+  "category": "Hotkeys",
+  "title": "Ctrl + Alt + Arrow (Left/Right) — Switch between virtual desktops",
+  "body": "Ctrl + Alt + Arrow (Left/Right)",
+  "group": "System Navigation",
+  "context": "",
+  "extra": "System Navigation "
+ },
+ {
+  "id": "hk-3y",
+  "category": "Hotkeys",
+  "title": "Alt + Tab — Switch between open windows",
+  "body": "Alt + Tab",
+  "group": "System Navigation",
+  "context": "",
+  "extra": "System Navigation "
+ },
+ {
+  "id": "hk-3z",
+  "category": "Hotkeys",
+  "title": "Ctrl + Alt + Backspace — Restart the X server (graphical environment)",
+  "body": "Ctrl + Alt + Backspace",
+  "group": "System Navigation",
+  "context": "",
+  "extra": "System Navigation "
+ },
+ {
+  "id": "hk-40",
+  "category": "Hotkeys",
+  "title": "chmod permissions filename — Change file permissions",
+  "body": "chmod permissions filename",
+  "group": "Advanced Utilities",
+  "context": "",
+  "extra": "Advanced Utilities "
+ },
+ {
+  "id": "hk-41",
+  "category": "Hotkeys",
+  "title": "chown user — group filename: Change file ownership",
+  "body": "chown user",
+  "group": "Advanced Utilities",
+  "context": "",
+  "extra": "Advanced Utilities "
+ },
+ {
+  "id": "hk-42",
+  "category": "Hotkeys",
+  "title": "find /path -name filename — Search for files by name",
+  "body": "find /path -name filename",
+  "group": "Advanced Utilities",
+  "context": "",
+  "extra": "Advanced Utilities "
+ },
+ {
+  "id": "hk-43",
+  "category": "Hotkeys",
+  "title": "tar -czvf archive.tar.gz foldername — Compress a folder",
+  "body": "tar -czvf archive.tar.gz foldername",
+  "group": "Advanced Utilities",
+  "context": "",
+  "extra": "Advanced Utilities "
+ },
+ {
+  "id": "hk-44",
+  "category": "Hotkeys",
+  "title": "tar -xzvf archive.tar.gz — Extract a compressed archive",
+  "body": "tar -xzvf archive.tar.gz",
+  "group": "Advanced Utilities",
+  "context": "",
+  "extra": "Advanced Utilities "
+ },
+ {
+  "id": "hk-45",
+  "category": "Hotkeys",
+  "title": "GG — Google",
+  "body": "GG",
+  "group": "Listary",
+  "context": "",
+  "extra": "Listary "
+ },
+ {
+  "id": "hk-46",
+  "category": "Hotkeys",
+  "title": "Right or Ctrl + 0 — Actions",
+  "body": "Right or Ctrl + 0",
+  "group": "Listary",
+  "context": "",
+  "extra": "Listary "
+ },
+ {
+  "id": "hk-47",
+  "category": "Hotkeys",
+  "title": "Ctrl + G — Switch",
+  "body": "Ctrl + G",
+  "group": "Listary",
+  "context": "",
+  "extra": "Listary "
+ },
+ {
+  "id": "hk-48",
+  "category": "Hotkeys",
+  "title": "Click to Sync Locations — Sync selected locations",
+  "body": "Click to Sync Locations",
+  "group": "Listary",
+  "context": "",
+  "extra": "Listary "
+ },
+ {
+  "id": "hk-49",
+  "category": "Hotkeys",
+  "title": "Alt + H — Hibernate",
+  "body": "Alt + H",
+  "group": "New Favorite",
+  "context": "",
+  "extra": "New Favorite "
+ },
+ {
+  "id": "hk-4a",
+  "category": "Hotkeys",
+  "title": "Tab + N — New task",
+  "body": "Tab + N",
+  "group": "New Favorite",
+  "context": "",
+  "extra": "New Favorite "
+ },
+ {
+  "id": "hk-4b",
+  "category": "Hotkeys",
+  "title": "Ctrl + Del — Delete Task",
+  "body": "Ctrl + Del",
+  "group": "New Favorite",
+  "context": "",
+  "extra": "New Favorite "
+ },
+ {
+  "id": "hk-4c",
+  "category": "Hotkeys",
+  "title": "Swipe 2 Fingers — Scroll Days",
+  "body": "Swipe 2 Fingers",
+  "group": "New Favorite",
+  "context": "",
+  "extra": "New Favorite "
+ },
+ {
+  "id": "hk-4d",
+  "category": "Hotkeys",
+  "title": "D + 1 — Day View",
+  "body": "D + 1",
+  "group": "New Favorite",
+  "context": "",
+  "extra": "New Favorite "
+ },
+ {
+  "id": "hk-4e",
+  "category": "Hotkeys",
+  "title": "W + 2 — Week View",
+  "body": "W + 2",
+  "group": "New Favorite",
+  "context": "",
+  "extra": "New Favorite "
+ },
+ {
+  "id": "hk-4f",
+  "category": "Hotkeys",
+  "title": "M + 3 — Month View",
+  "body": "M + 3",
+  "group": "New Favorite",
+  "context": "",
+  "extra": "New Favorite "
+ },
+ {
+  "id": "hk-4g",
+  "category": "Hotkeys",
+  "title": "Ctrl + Alt + T — New Sticky Note",
+  "body": "Ctrl + Alt + T",
+  "group": "New Favorite",
+  "context": "",
+  "extra": "New Favorite "
+ },
+ {
+  "id": "hk-4h",
+  "category": "Hotkeys",
+  "title": "Ctrl + Alt + Y — Show all Sticky Notes",
+  "body": "Ctrl + Alt + Y",
+  "group": "New Favorite",
+  "context": "",
+  "extra": "New Favorite "
+ },
+ {
+  "id": "hk-4i",
+  "category": "Hotkeys",
+  "title": "Ctrl + K — Go to Search Bar",
+  "body": "Ctrl + K",
+  "group": "New Favorite",
+  "context": "",
+  "extra": "New Favorite "
+ },
+ {
+  "id": "hk-4j",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + T — Reopen Tabs",
+  "body": "Ctrl + Shift + T",
+  "group": "New Favorite",
+  "context": "",
+  "extra": "New Favorite "
+ },
+ {
+  "id": "hk-4k",
+  "category": "Hotkeys",
+  "title": "Alt + F12 — Open Power Query",
+  "body": "Alt + F12",
+  "group": "New Favorite",
+  "context": "",
+  "extra": "New Favorite "
+ },
+ {
+  "id": "hk-4l",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + C — Open Claude",
+  "body": "Ctrl + Shift + C",
+  "group": "Open Apps",
+  "context": "",
+  "extra": "Open Apps "
+ },
+ {
+  "id": "hk-4m",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + O — Open ChatGPT",
+  "body": "Ctrl + Shift + O",
+  "group": "Open Apps",
+  "context": "",
+  "extra": "Open Apps "
+ },
+ {
+  "id": "hk-4n",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + B — Open Gemini",
+  "body": "Ctrl + Shift + B",
+  "group": "Open Apps",
+  "context": "",
+  "extra": "Open Apps "
+ },
+ {
+  "id": "hk-4o",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + N — Open Notepad",
+  "body": "Ctrl + Shift + N",
+  "group": "Open Apps",
+  "context": "",
+  "extra": "Open Apps "
+ },
+ {
+  "id": "hk-4p",
+  "category": "Hotkeys",
+  "title": "Alt + Space — Open Power Run",
+  "body": "Alt + Space",
+  "group": "PowerToys",
+  "context": "",
+  "extra": "PowerToys "
+ },
+ {
+  "id": "hk-4q",
+  "category": "Hotkeys",
+  "title": "Start + — Activate Fancy Zones",
+  "body": "Start +",
+  "group": "PowerToys",
+  "context": "",
+  "extra": "PowerToys "
+ },
+ {
+  "id": "hk-4r",
+  "category": "Hotkeys",
+  "title": "Start + Alt + T — Text Extract",
+  "body": "Start + Alt + T",
+  "group": "PowerToys",
+  "context": "",
+  "extra": "PowerToys "
+ },
+ {
+  "id": "hk-4s",
+  "category": "Hotkeys",
+  "title": "Alt + R — Pin",
+  "body": "Alt + R",
+  "group": "Raindrop",
+  "context": "",
+  "extra": "Raindrop "
+ },
+ {
+  "id": "hk-4t",
+  "category": "Hotkeys",
+  "title": "Ctrl + . — Open Sidebar",
+  "body": "Ctrl + .",
+  "group": "Raindrop",
+  "context": "",
+  "extra": "Raindrop "
+ },
+ {
+  "id": "hk-4u",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + S — Save Selection",
+  "body": "Ctrl + Shift + S",
+  "group": "Raindrop",
+  "context": "",
+  "extra": "Raindrop "
+ },
+ {
+  "id": "hk-4v",
+  "category": "Hotkeys",
+  "title": "/fanl — For Aligninlight",
+  "body": "/fanl",
+  "group": "Samsung",
+  "context": "",
+  "extra": "Samsung "
+ },
+ {
+  "id": "hk-4w",
+  "category": "Hotkeys",
+  "title": "/fkb — For Kareem",
+  "body": "/fkb",
+  "group": "Samsung",
+  "context": "",
+  "extra": "Samsung "
+ },
+ {
+  "id": "hk-4x",
+  "category": "Hotkeys",
+  "title": "/gai — Generate an Image",
+  "body": "/gai",
+  "group": "Samsung",
+  "context": "",
+  "extra": "Samsung "
+ },
+ {
+  "id": "hk-4y",
+  "category": "Hotkeys",
+  "title": "/lwd — List details and stats",
+  "body": "/lwd",
+  "group": "Samsung",
+  "context": "",
+  "extra": "Samsung "
+ },
+ {
+  "id": "hk-4z",
+  "category": "Hotkeys",
+  "title": "/smt — Summarize This",
+  "body": "/smt",
+  "group": "Samsung",
+  "context": "",
+  "extra": "Samsung "
+ },
+ {
+  "id": "hk-50",
+  "category": "Hotkeys",
+  "title": "/titb — Turn into a blog",
+  "body": "/titb",
+  "group": "Samsung",
+  "context": "",
+  "extra": "Samsung "
+ },
+ {
+  "id": "hk-51",
+  "category": "Hotkeys",
+  "title": "/csbv — Create a step-by-step lab from the video",
+  "body": "/csbv",
+  "group": "SwiftKey",
+  "context": "",
+  "extra": "SwiftKey "
+ },
+ {
+  "id": "hk-52",
+  "category": "Hotkeys",
+  "title": "/aff — Afrofuturism Art Prompt",
+  "body": "/aff",
+  "group": "SwiftKey",
+  "context": "",
+  "extra": "SwiftKey "
+ },
+ {
+  "id": "hk-53",
+  "category": "Hotkeys",
+  "title": "/titg — Turn into a guide",
+  "body": "/titg",
+  "group": "SwiftKey",
+  "context": "",
+  "extra": "SwiftKey "
+ },
+ {
+  "id": "hk-54",
+  "category": "Hotkeys",
+  "title": "/titb — Turn into a blog",
+  "body": "/titb",
+  "group": "SwiftKey",
+  "context": "",
+  "extra": "SwiftKey "
+ },
+ {
+  "id": "hk-55",
+  "category": "Hotkeys",
+  "title": "/pvj — Photorealistic Vibrant Image Prompt",
+  "body": "/pvj",
+  "group": "SwiftKey",
+  "context": "",
+  "extra": "SwiftKey "
+ },
+ {
+  "id": "hk-56",
+  "category": "Hotkeys",
+  "title": "/afk — African King Image Prompt",
+  "body": "/afk",
+  "group": "SwiftKey",
+  "context": "",
+  "extra": "SwiftKey "
+ },
+ {
+  "id": "hk-57",
+  "category": "Hotkeys",
+  "title": "Ctrl + K — Open Command Menu or Sea",
+  "body": "Ctrl + K",
+  "group": "TickTick",
+  "context": "General Shortcuts Start/Pause Focus",
+  "extra": "TickTick General Shortcuts Start/Pause Focus"
+ },
+ {
+  "id": "hk-58",
+  "category": "Hotkeys",
+  "title": "Ctrl + Alt + A — Quick Add",
+  "body": "Ctrl + Alt + A",
+  "group": "TickTick",
+  "context": "General Shortcuts Start/Pause Focus",
+  "extra": "TickTick General Shortcuts Start/Pause Focus"
+ },
+ {
+  "id": "hk-59",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + P — Start/Pause Focus",
+  "body": "Ctrl + Shift + P",
+  "group": "TickTick",
+  "context": "General Shortcuts Start/Pause Focus",
+  "extra": "TickTick General Shortcuts Start/Pause Focus"
+ },
+ {
+  "id": "hk-5a",
+  "category": "Hotkeys",
+  "title": "Ctrl + E — Collapse Notes",
+  "body": "Ctrl + E",
+  "group": "TickTick",
+  "context": "General Shortcuts Start/Pause Focus",
+  "extra": "TickTick General Shortcuts Start/Pause Focus"
+ },
+ {
+  "id": "hk-5b",
+  "category": "Hotkeys",
+  "title": "Ctrl + Alt + T — Quick Sticky",
+  "body": "Ctrl + Alt + T",
+  "group": "TickTick",
+  "context": "General Shortcuts Start/Pause Focus",
+  "extra": "TickTick General Shortcuts Start/Pause Focus"
+ },
+ {
+  "id": "hk-5c",
+  "category": "Hotkeys",
+  "title": "? — Open Shortcuts Help",
+  "body": "?",
+  "group": "TickTick",
+  "context": "General Shortcuts Start/Pause Focus",
+  "extra": "TickTick General Shortcuts Start/Pause Focus"
+ },
+ {
+  "id": "hk-5d",
+  "category": "Hotkeys",
+  "title": "Swipe 2 Fingers — Scroll Days",
+  "body": "Swipe 2 Fingers",
+  "group": "TickTick",
+  "context": "General Shortcuts Start/Pause Focus",
+  "extra": "TickTick General Shortcuts Start/Pause Focus"
+ },
+ {
+  "id": "hk-5e",
+  "category": "Hotkeys",
+  "title": "D + 1 — Day View",
+  "body": "D + 1",
+  "group": "TickTick",
+  "context": "General Shortcuts Start/Pause Focus",
+  "extra": "TickTick General Shortcuts Start/Pause Focus"
+ },
+ {
+  "id": "hk-5f",
+  "category": "Hotkeys",
+  "title": "W + 2 — Week View",
+  "body": "W + 2",
+  "group": "TickTick",
+  "context": "General Shortcuts Start/Pause Focus",
+  "extra": "TickTick General Shortcuts Start/Pause Focus"
+ },
+ {
+  "id": "hk-5g",
+  "category": "Hotkeys",
+  "title": "M + 3 — Month View",
+  "body": "M + 3",
+  "group": "TickTick",
+  "context": "General Shortcuts Start/Pause Focus",
+  "extra": "TickTick General Shortcuts Start/Pause Focus"
+ },
+ {
+  "id": "hk-5h",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + Y — Highlight",
+  "body": "Ctrl + Shift + Y",
+  "group": "TickTick",
+  "context": "General Shortcuts Start/Pause Focus",
+  "extra": "TickTick General Shortcuts Start/Pause Focus"
+ },
+ {
+  "id": "hk-5i",
+  "category": "Hotkeys",
+  "title": "Tab + N or N — Add task",
+  "body": "Tab + N or N",
+  "group": "TickTick",
+  "context": "Task Shortcuts",
+  "extra": "TickTick Task Shortcuts"
+ },
+ {
+  "id": "hk-5j",
+  "category": "Hotkeys",
+  "title": "Enter — Add task below",
+  "body": "Enter",
+  "group": "TickTick",
+  "context": "Task Shortcuts",
+  "extra": "TickTick Task Shortcuts"
+ },
+ {
+  "id": "hk-5k",
+  "category": "Hotkeys",
+  "title": "Shift + Enter — Add subtask",
+  "body": "Shift + Enter",
+  "group": "TickTick",
+  "context": "Task Shortcuts",
+  "extra": "TickTick Task Shortcuts"
+ },
+ {
+  "id": "hk-5l",
+  "category": "Hotkeys",
+  "title": "Tab + E — Expand/Collapse all subtasks",
+  "body": "Tab + E",
+  "group": "TickTick",
+  "context": "Task Shortcuts",
+  "extra": "TickTick Task Shortcuts"
+ },
+ {
+  "id": "hk-5m",
+  "category": "Hotkeys",
+  "title": "\\* — Set due date for the task",
+  "body": "\\*",
+  "group": "TickTick",
+  "context": "Quick Add Shortcuts",
+  "extra": "TickTick Quick Add Shortcuts"
+ },
+ {
+  "id": "hk-5n",
+  "category": "Hotkeys",
+  "title": "! — Set priority for the task",
+  "body": "!",
+  "group": "TickTick",
+  "context": "Quick Add Shortcuts",
+  "extra": "TickTick Quick Add Shortcuts"
+ },
+ {
+  "id": "hk-5o",
+  "category": "Hotkeys",
+  "title": "# — Set tag for the task",
+  "body": "#",
+  "group": "TickTick",
+  "context": "Quick Add Shortcuts",
+  "extra": "TickTick Quick Add Shortcuts"
+ },
+ {
+  "id": "hk-5p",
+  "category": "Hotkeys",
+  "title": "~ / ^ — Add/move task to a certain list",
+  "body": "~ / ^",
+  "group": "TickTick",
+  "context": "Quick Add Shortcuts",
+  "extra": "TickTick Quick Add Shortcuts"
+ },
+ {
+  "id": "hk-5q",
+  "category": "Hotkeys",
+  "title": "@ — Assign task to a certain member",
+  "body": "@",
+  "group": "TickTick",
+  "context": "Quick Add Shortcuts",
+  "extra": "TickTick Quick Add Shortcuts"
+ },
+ {
+  "id": "hk-5r",
+  "category": "Hotkeys",
+  "title": "Tab + M — Complete tasks",
+  "body": "Tab + M",
+  "group": "TickTick",
+  "context": "Edit Tasks Shortcuts",
+  "extra": "TickTick Edit Tasks Shortcuts"
+ },
+ {
+  "id": "hk-5s",
+  "category": "Hotkeys",
+  "title": "Tab + P — Pin tasks",
+  "body": "Tab + P",
+  "group": "TickTick",
+  "context": "Edit Tasks Shortcuts",
+  "extra": "TickTick Edit Tasks Shortcuts"
+ },
+ {
+  "id": "hk-5t",
+  "category": "Hotkeys",
+  "title": "Ctrl + Del — Delete tasks",
+  "body": "Ctrl + Del",
+  "group": "TickTick",
+  "context": "Edit Tasks Shortcuts",
+  "extra": "TickTick Edit Tasks Shortcuts"
+ },
+ {
+  "id": "hk-5u",
+  "category": "Hotkeys",
+  "title": "Tab + D — Set date",
+  "body": "Tab + D",
+  "group": "TickTick",
+  "context": "Edit Tasks Shortcuts",
+  "extra": "TickTick Edit Tasks Shortcuts"
+ },
+ {
+  "id": "hk-5v",
+  "category": "Hotkeys",
+  "title": "Tab + O — Clear time",
+  "body": "Tab + O",
+  "group": "TickTick",
+  "context": "Edit Tasks Shortcuts",
+  "extra": "TickTick Edit Tasks Shortcuts"
+ },
+ {
+  "id": "hk-5w",
+  "category": "Hotkeys",
+  "title": "Tab + 1 — Set today",
+  "body": "Tab + 1",
+  "group": "TickTick",
+  "context": "Edit Tasks Shortcuts",
+  "extra": "TickTick Edit Tasks Shortcuts"
+ },
+ {
+  "id": "hk-5x",
+  "category": "Hotkeys",
+  "title": "Tab + 2 — Set tomorrow",
+  "body": "Tab + 2",
+  "group": "TickTick",
+  "context": "Edit Tasks Shortcuts",
+  "extra": "TickTick Edit Tasks Shortcuts"
+ },
+ {
+  "id": "hk-5y",
+  "category": "Hotkeys",
+  "title": "Tab + 3 — Set next week",
+  "body": "Tab + 3",
+  "group": "TickTick",
+  "context": "Edit Tasks Shortcuts",
+  "extra": "TickTick Edit Tasks Shortcuts"
+ },
+ {
+  "id": "hk-5z",
+  "category": "Hotkeys",
+  "title": "Alt + 0/1/2/3 — Set priority",
+  "body": "Alt + 0/1/2/3",
+  "group": "TickTick",
+  "context": "Edit Tasks Shortcuts",
+  "extra": "TickTick Edit Tasks Shortcuts"
+ },
+ {
+  "id": "hk-60",
+  "category": "Hotkeys",
+  "title": "/ — Go to Search",
+  "body": "/",
+  "group": "TickTick",
+  "context": "Navigate Shortcuts",
+  "extra": "TickTick Navigate Shortcuts"
+ },
+ {
+  "id": "hk-61",
+  "category": "Hotkeys",
+  "title": "G then S — Go to Settings",
+  "body": "G then S",
+  "group": "TickTick",
+  "context": "Navigate Shortcuts",
+  "extra": "TickTick Navigate Shortcuts"
+ },
+ {
+  "id": "hk-62",
+  "category": "Hotkeys",
+  "title": "G then A — Go to All",
+  "body": "G then A",
+  "group": "TickTick",
+  "context": "Navigate Shortcuts",
+  "extra": "TickTick Navigate Shortcuts"
+ },
+ {
+  "id": "hk-63",
+  "category": "Hotkeys",
+  "title": "G then T — Go to Today",
+  "body": "G then T",
+  "group": "TickTick",
+  "context": "Navigate Shortcuts",
+  "extra": "TickTick Navigate Shortcuts"
+ },
+ {
+  "id": "hk-64",
+  "category": "Hotkeys",
+  "title": "G then R — Go to Tomorrow",
+  "body": "G then R",
+  "group": "TickTick",
+  "context": "Navigate Shortcuts",
+  "extra": "TickTick Navigate Shortcuts"
+ },
+ {
+  "id": "hk-65",
+  "category": "Hotkeys",
+  "title": "G then N — Go to Next 7 Days",
+  "body": "G then N",
+  "group": "TickTick",
+  "context": "Navigate Shortcuts",
+  "extra": "TickTick Navigate Shortcuts"
+ },
+ {
+  "id": "hk-66",
+  "category": "Hotkeys",
+  "title": "G then I — Go to Inbox",
+  "body": "G then I",
+  "group": "TickTick",
+  "context": "Navigate Shortcuts",
+  "extra": "TickTick Navigate Shortcuts"
+ },
+ {
+  "id": "hk-67",
+  "category": "Hotkeys",
+  "title": "G then B — Go to Summary",
+  "body": "G then B",
+  "group": "TickTick",
+  "context": "Navigate Shortcuts",
+  "extra": "TickTick Navigate Shortcuts"
+ },
+ {
+  "id": "hk-68",
+  "category": "Hotkeys",
+  "title": "V then L — List view",
+  "body": "V then L",
+  "group": "TickTick",
+  "context": "Switch Views Shortcuts",
+  "extra": "TickTick Switch Views Shortcuts"
+ },
+ {
+  "id": "hk-69",
+  "category": "Hotkeys",
+  "title": "V then K — Kanban view",
+  "body": "V then K",
+  "group": "TickTick",
+  "context": "Switch Views Shortcuts",
+  "extra": "TickTick Switch Views Shortcuts"
+ },
+ {
+  "id": "hk-6a",
+  "category": "Hotkeys",
+  "title": "V then T — Timeline view",
+  "body": "V then T",
+  "group": "TickTick",
+  "context": "Switch Views Shortcuts",
+  "extra": "TickTick Switch Views Shortcuts"
+ },
+ {
+  "id": "hk-6b",
+  "category": "Hotkeys",
+  "title": "D / 1 — Day view",
+  "body": "D / 1",
+  "group": "TickTick",
+  "context": "Switch Views Shortcuts",
+  "extra": "TickTick Switch Views Shortcuts"
+ },
+ {
+  "id": "hk-6c",
+  "category": "Hotkeys",
+  "title": "W / 2 — Week view",
+  "body": "W / 2",
+  "group": "TickTick",
+  "context": "Switch Views Shortcuts",
+  "extra": "TickTick Switch Views Shortcuts"
+ },
+ {
+  "id": "hk-6d",
+  "category": "Hotkeys",
+  "title": "M / 3 — Month view",
+  "body": "M / 3",
+  "group": "TickTick",
+  "context": "Switch Views Shortcuts",
+  "extra": "TickTick Switch Views Shortcuts"
+ },
+ {
+  "id": "hk-6e",
+  "category": "Hotkeys",
+  "title": "/tl — Generate TLDR summary",
+  "body": "/tl",
+  "group": "Text Blaze",
+  "context": "",
+  "extra": "Text Blaze "
+ },
+ {
+  "id": "hk-6f",
+  "category": "Hotkeys",
+  "title": "/ct — Create Table",
+  "body": "/ct",
+  "group": "Text Blaze",
+  "context": "",
+  "extra": "Text Blaze "
+ },
+ {
+  "id": "hk-6g",
+  "category": "Hotkeys",
+  "title": "/ci — Create an image for this",
+  "body": "/ci",
+  "group": "Text Blaze",
+  "context": "",
+  "extra": "Text Blaze "
+ },
+ {
+  "id": "hk-6h",
+  "category": "Hotkeys",
+  "title": "/fanl — For Aligninlight",
+  "body": "/fanl",
+  "group": "Text Blaze",
+  "context": "",
+  "extra": "Text Blaze "
+ },
+ {
+  "id": "hk-6i",
+  "category": "Hotkeys",
+  "title": "/fk — For Kareem",
+  "body": "/fk",
+  "group": "Text Blaze",
+  "context": "",
+  "extra": "Text Blaze "
+ },
+ {
+  "id": "hk-6j",
+  "category": "Hotkeys",
+  "title": "/smt — Summarize This",
+  "body": "/smt",
+  "group": "Text Blaze",
+  "context": "",
+  "extra": "Text Blaze "
+ },
+ {
+  "id": "hk-6k",
+  "category": "Hotkeys",
+  "title": "/titb — Turn into a detailed educational blog",
+  "body": "/titb",
+  "group": "Text Blaze",
+  "context": "",
+  "extra": "Text Blaze "
+ },
+ {
+  "id": "hk-6l",
+  "category": "Hotkeys",
+  "title": "/ask — Ask me five questions",
+  "body": "/ask",
+  "group": "Text Blaze",
+  "context": "",
+  "extra": "Text Blaze "
+ },
+ {
+  "id": "hk-6m",
+  "category": "Hotkeys",
+  "title": "/al — Aligninlight",
+  "body": "/al",
+  "group": "Text Blaze",
+  "context": "",
+  "extra": "Text Blaze "
+ },
+ {
+  "id": "hk-6n",
+  "category": "Hotkeys",
+  "title": "/cab — Create the Aligninlight Business",
+  "body": "/cab",
+  "group": "Text Blaze",
+  "context": "",
+  "extra": "Text Blaze "
+ },
+ {
+  "id": "hk-6o",
+  "category": "Hotkeys",
+  "title": "/cot — Continue",
+  "body": "/cot",
+  "group": "Text Blaze",
+  "context": "",
+  "extra": "Text Blaze "
+ },
+ {
+  "id": "hk-6p",
+  "category": "Hotkeys",
+  "title": "/wmj — Write My Journal",
+  "body": "/wmj",
+  "group": "Text Blaze",
+  "context": "",
+  "extra": "Text Blaze "
+ },
+ {
+  "id": "hk-6q",
+  "category": "Hotkeys",
+  "title": "/wwmw — Major Wins",
+  "body": "/wwmw",
+  "group": "Text Blaze",
+  "context": "",
+  "extra": "Text Blaze "
+ },
+ {
+  "id": "hk-6r",
+  "category": "Hotkeys",
+  "title": "F2 — Open Panel",
+  "body": "F2",
+  "group": "Vivaldi Browser",
+  "context": "",
+  "extra": "Vivaldi Browser "
+ },
+ {
+  "id": "hk-6s",
+  "category": "Hotkeys",
+  "title": "F4 — Open Shortcuts",
+  "body": "F4",
+  "group": "Vivaldi Browser",
+  "context": "",
+  "extra": "Vivaldi Browser "
+ },
+ {
+  "id": "hk-6t",
+  "category": "Hotkeys",
+  "title": "Ctrl + F9 — Tile windows",
+  "body": "Ctrl + F9",
+  "group": "Vivaldi Browser",
+  "context": "",
+  "extra": "Vivaldi Browser "
+ },
+ {
+  "id": "hk-6u",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + B — Toggle Bookmarks Bar",
+  "body": "Ctrl + Shift + B",
+  "group": "Vivaldi Browser",
+  "context": "",
+  "extra": "Vivaldi Browser "
+ },
+ {
+  "id": "hk-6v",
+  "category": "Hotkeys",
+  "title": "Alt + P — Open Panel",
+  "body": "Alt + P",
+  "group": "Vivaldi Browser",
+  "context": "",
+  "extra": "Vivaldi Browser "
+ },
+ {
+  "id": "hk-6w",
+  "category": "Hotkeys",
+  "title": "Alt + 1 — Switch to Workspace 1",
+  "body": "Alt + 1",
+  "group": "Vivaldi Browser",
+  "context": "",
+  "extra": "Vivaldi Browser "
+ },
+ {
+  "id": "hk-6x",
+  "category": "Hotkeys",
+  "title": "Alt + H — Hibernate Workspaces",
+  "body": "Alt + H",
+  "group": "Vivaldi Browser",
+  "context": "",
+  "extra": "Vivaldi Browser "
+ },
+ {
+  "id": "hk-6y",
+  "category": "Hotkeys",
+  "title": "Alt + 3 — Open Email",
+  "body": "Alt + 3",
+  "group": "Vivaldi Browser",
+  "context": "",
+  "extra": "Vivaldi Browser "
+ },
+ {
+  "id": "hk-6z",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + 1 — Extra Large Icons",
+  "body": "Ctrl + Shift + 1",
+  "group": "WIndows View Management",
+  "context": "",
+  "extra": "WIndows View Management "
+ },
+ {
+  "id": "hk-70",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + 2 — Large Icons",
+  "body": "Ctrl + Shift + 2",
+  "group": "WIndows View Management",
+  "context": "",
+  "extra": "WIndows View Management "
+ },
+ {
+  "id": "hk-71",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + 3 — Medium Icons",
+  "body": "Ctrl + Shift + 3",
+  "group": "WIndows View Management",
+  "context": "",
+  "extra": "WIndows View Management "
+ },
+ {
+  "id": "hk-72",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + 4 — Small Icons",
+  "body": "Ctrl + Shift + 4",
+  "group": "WIndows View Management",
+  "context": "",
+  "extra": "WIndows View Management "
+ },
+ {
+  "id": "hk-73",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + 5 — List View",
+  "body": "Ctrl + Shift + 5",
+  "group": "WIndows View Management",
+  "context": "",
+  "extra": "WIndows View Management "
+ },
+ {
+  "id": "hk-74",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + 6 — Details View",
+  "body": "Ctrl + Shift + 6",
+  "group": "WIndows View Management",
+  "context": "",
+  "extra": "WIndows View Management "
+ },
+ {
+  "id": "hk-75",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + 7 — Tiles View",
+  "body": "Ctrl + Shift + 7",
+  "group": "WIndows View Management",
+  "context": "",
+  "extra": "WIndows View Management "
+ },
+ {
+  "id": "hk-76",
+  "category": "Hotkeys",
+  "title": "Up Arrow (↑) — Alt + 24",
+  "body": "Up Arrow (↑)",
+  "group": "WIndows View Management",
+  "context": "Directions On Keyboard",
+  "extra": "WIndows View Management Directions On Keyboard"
+ },
+ {
+  "id": "hk-77",
+  "category": "Hotkeys",
+  "title": "Down Arrow (↓) — Alt + 25",
+  "body": "Down Arrow (↓)",
+  "group": "WIndows View Management",
+  "context": "Directions On Keyboard",
+  "extra": "WIndows View Management Directions On Keyboard"
+ },
+ {
+  "id": "hk-78",
+  "category": "Hotkeys",
+  "title": "Right Arrow (→) — Alt + 26",
+  "body": "Right Arrow (→)",
+  "group": "WIndows View Management",
+  "context": "Directions On Keyboard",
+  "extra": "WIndows View Management Directions On Keyboard"
+ },
+ {
+  "id": "hk-79",
+  "category": "Hotkeys",
+  "title": "Left Arrow (←) — Alt + 27",
+  "body": "Left Arrow (←)",
+  "group": "WIndows View Management",
+  "context": "Directions On Keyboard",
+  "extra": "WIndows View Management Directions On Keyboard"
+ },
+ {
+  "id": "hk-7a",
+  "category": "Hotkeys",
+  "title": "F2 — Rename selected item",
+  "body": "F2",
+  "group": "WIndows View Management",
+  "context": "Windows Management Shortcuts",
+  "extra": "WIndows View Management Windows Management Shortcuts"
+ },
+ {
+  "id": "hk-7b",
+  "category": "Hotkeys",
+  "title": "Ctrl + F4 — Close current window",
+  "body": "Ctrl + F4",
+  "group": "WIndows View Management",
+  "context": "Windows Management Shortcuts",
+  "extra": "WIndows View Management Windows Management Shortcuts"
+ },
+ {
+  "id": "hk-7c",
+  "category": "Hotkeys",
+  "title": "Alt + Esc — Cycle through open apps",
+  "body": "Alt + Esc",
+  "group": "WIndows View Management",
+  "context": "Windows Management Shortcuts",
+  "extra": "WIndows View Management Windows Management Shortcuts"
+ },
+ {
+  "id": "hk-7d",
+  "category": "Hotkeys",
+  "title": "Ctrl + Shift + Esc — Open Task Manager",
+  "body": "Ctrl + Shift + Esc",
+  "group": "WIndows View Management",
+  "context": "Windows Management Shortcuts",
+  "extra": "WIndows View Management Windows Management Shortcuts"
+ },
+ {
+  "id": "hk-7e",
+  "category": "Hotkeys",
+  "title": "Shift + > — Select items",
+  "body": "Shift + >",
+  "group": "WIndows View Management",
+  "context": "Windows Management Shortcuts",
+  "extra": "WIndows View Management Windows Management Shortcuts"
+ },
+ {
+  "id": "hk-7f",
+  "category": "Hotkeys",
+  "title": "Shift + Ctrl + > — Select blocks",
+  "body": "Shift + Ctrl + >",
+  "group": "WIndows View Management",
+  "context": "Windows Management Shortcuts",
+  "extra": "WIndows View Management Windows Management Shortcuts"
+ },
+ {
+  "id": "hk-7g",
+  "category": "Hotkeys",
+  "title": "W + E — Open Explorer",
+  "body": "W + E",
+  "group": "WIndows View Management",
+  "context": "Windows Management Shortcuts",
+  "extra": "WIndows View Management Windows Management Shortcuts"
+ },
+ {
+  "id": "hk-7h",
+  "category": "Hotkeys",
+  "title": "W + I — Open Settings",
+  "body": "W + I",
+  "group": "WIndows View Management",
+  "context": "Windows Management Shortcuts",
+  "extra": "WIndows View Management Windows Management Shortcuts"
+ },
+ {
+  "id": "hk-7i",
+  "category": "Hotkeys",
+  "title": "W + R — Open Run dialog",
+  "body": "W + R",
+  "group": "WIndows View Management",
+  "context": "Windows Management Shortcuts",
+  "extra": "WIndows View Management Windows Management Shortcuts"
+ },
+ {
+  "id": "hk-7j",
+  "category": "Hotkeys",
+  "title": "W + T — Cycle through Taskbar items",
+  "body": "W + T",
+  "group": "WIndows View Management",
+  "context": "Windows Management Shortcuts",
+  "extra": "WIndows View Management Windows Management Shortcuts"
+ },
+ {
+  "id": "hk-7k",
+  "category": "Hotkeys",
+  "title": "W + X — Open Quick Link menu",
+  "body": "W + X",
+  "group": "WIndows View Management",
+  "context": "Windows Management Shortcuts",
+  "extra": "WIndows View Management Windows Management Shortcuts"
+ },
+ {
+  "id": "hk-7l",
+  "category": "Hotkeys",
+  "title": "W + . — Open Emoji picker",
+  "body": "W + .",
+  "group": "WIndows View Management",
+  "context": "Windows Management Shortcuts",
+  "extra": "WIndows View Management Windows Management Shortcuts"
+ },
+ {
+  "id": "hk-7m",
+  "category": "Hotkeys",
+  "title": "W + ↓ — Minimize window",
+  "body": "W + ↓",
+  "group": "WIndows View Management",
+  "context": "Windows Management Shortcuts",
+  "extra": "WIndows View Management Windows Management Shortcuts"
+ },
+ {
+  "id": "hk-7n",
+  "category": "Hotkeys",
+  "title": "W + Shift + ↑ — Move window to the top",
+  "body": "W + Shift + ↑",
+  "group": "WIndows View Management",
+  "context": "Windows Management Shortcuts",
+  "extra": "WIndows View Management Windows Management Shortcuts"
+ },
+ {
+  "id": "hk-7o",
+  "category": "Hotkeys",
+  "title": "Shift + Click — Open a new instance of an app",
+  "body": "Shift + Click",
+  "group": "WIndows View Management",
+  "context": "Windows Management Shortcuts",
+  "extra": "WIndows View Management Windows Management Shortcuts"
+ },
+ {
+  "id": "hk-7p",
+  "category": "Hotkeys",
+  "title": "W + 1 — Open Arc",
+  "body": "W + 1",
+  "group": "WIndows View Management",
+  "context": "Windows Taskbar Shortcuts",
+  "extra": "WIndows View Management Windows Taskbar Shortcuts"
+ },
+ {
+  "id": "hk-7q",
+  "category": "Hotkeys",
+  "title": "W + 2 — Open Tick",
+  "body": "W + 2",
+  "group": "WIndows View Management",
+  "context": "Windows Taskbar Shortcuts",
+  "extra": "WIndows View Management Windows Taskbar Shortcuts"
+ },
+ {
+  "id": "hk-7r",
+  "category": "Hotkeys",
+  "title": "W + 3 — Open Note",
+  "body": "W + 3",
+  "group": "WIndows View Management",
+  "context": "Windows Taskbar Shortcuts",
+  "extra": "WIndows View Management Windows Taskbar Shortcuts"
+ },
+ {
+  "id": "hk-7s",
+  "category": "Hotkeys",
+  "title": "W + 4 — Open Routine",
+  "body": "W + 4",
+  "group": "WIndows View Management",
+  "context": "Windows Taskbar Shortcuts",
+  "extra": "WIndows View Management Windows Taskbar Shortcuts"
+ },
+ {
+  "id": "hk-7t",
+  "category": "Hotkeys",
+  "title": "W + 5 — Open Settings",
+  "body": "W + 5",
+  "group": "WIndows View Management",
+  "context": "Windows Taskbar Shortcuts",
+  "extra": "WIndows View Management Windows Taskbar Shortcuts"
+ },
+ {
+  "id": "hk-7u",
+  "category": "Hotkeys",
+  "title": "W + 6 — Open Everything",
+  "body": "W + 6",
+  "group": "WIndows View Management",
+  "context": "Windows Taskbar Shortcuts",
+  "extra": "WIndows View Management Windows Taskbar Shortcuts"
+ },
+ {
+  "id": "hk-7v",
+  "category": "Hotkeys",
+  "title": "W + 7 — Open Task Manager",
+  "body": "W + 7",
+  "group": "WIndows View Management",
+  "context": "Windows Taskbar Shortcuts",
+  "extra": "WIndows View Management Windows Taskbar Shortcuts"
+ },
+ {
+  "id": "hk-7w",
+  "category": "Hotkeys",
+  "title": "W + 8 — Open Explorer",
+  "body": "W + 8",
+  "group": "WIndows View Management",
+  "context": "Windows Taskbar Shortcuts",
+  "extra": "WIndows View Management Windows Taskbar Shortcuts"
+ },
+ {
+  "id": "hk-7x",
+  "category": "Hotkeys",
+  "title": "W + 9 — Open Clock",
+  "body": "W + 9",
+  "group": "WIndows View Management",
+  "context": "Windows Taskbar Shortcuts",
+  "extra": "WIndows View Management Windows Taskbar Shortcuts"
+ },
+ {
+  "id": "hk-7y",
+  "category": "Hotkeys",
+  "title": "Dreamweaver HTML Shortcuts — The following shortcuts were listed but lack descriptions. Please provide additional details to complete this section.",
+  "body": "Dreamweaver HTML Shortcuts",
+  "group": "WIndows View Management",
+  "context": "Additional Notes",
+  "extra": "WIndows View Management Additional Notes"
+ },
+ {
+  "id": "bot-7z",
+  "category": "AI Prompts",
+  "title": "cv2md — Markdown Converter",
+  "body": "Without changing the original text, Convert the previous response to a codeblock of markdown code: # Formatting and Improvement Guidelines:...",
+  "group": "Content Transformation and Formatting Prompts",
+  "context": "Markdown Code Conversion",
+  "extra": "Markdown Converter Markdown Code Conversion",
+  "truncated": true
+ },
+ {
+  "id": "bot-80",
+  "category": "AI Prompts",
+  "title": "fxdash — Text Cleaner",
+  "body": "Remove dashes, Colons, and Any text is Not before a colon and note after a Dash:",
+  "group": "Content Transformation and Formatting Prompts",
+  "context": "Text Cleaning/Formatting",
+  "extra": "Text Cleaner Text Cleaning/Formatting",
+  "truncated": false
+ },
+ {
+  "id": "bot-81",
+  "category": "AI Prompts",
+  "title": "impt — Formatting AI",
+  "body": "Improve the Formatting, clarity and structure,",
+  "group": "Content Transformation and Formatting Prompts",
+  "context": "Formatting Improvement",
+  "extra": "Formatting AI Formatting Improvement",
+  "truncated": false
+ },
+ {
+  "id": "bot-82",
+  "category": "AI Prompts",
+  "title": "mkpro — Content Enhancer",
+  "body": "Make the input, previous responses and or sources more verbose and robust while educational, and instructional. while being engaging entertaining For a broad audience, make sure t...",
+  "group": "Content Transformation and Formatting Prompts",
+  "context": "Content Enhancement",
+  "extra": "Content Enhancer Content Enhancement",
+  "truncated": true
+ },
+ {
+  "id": "bot-83",
+  "category": "AI Prompts",
+  "title": "mkez — Readability Enhancer",
+  "body": "Make this easier to read, use various list styles in addition to bullets and numbers, use headings with colons at the end of thier lines. Never add special characters to the start of a he...",
+  "group": "Content Transformation and Formatting Prompts",
+  "context": "Readability Improvement",
+  "extra": "Readability Enhancer Readability Improvement",
+  "truncated": true
+ },
+ {
+  "id": "bot-84",
+  "category": "AI Prompts",
+  "title": "rfai — Formatting & Improvement Bot",
+  "body": "Reformat and Improve,",
+  "group": "Content Transformation and Formatting Prompts",
+  "context": "Reformatting & Improvement",
+  "extra": "Formatting & Improvement Bot Reformatting & Improvement",
+  "truncated": false
+ },
+ {
+  "id": "bot-85",
+  "category": "AI Prompts",
+  "title": "rwr — Rewriter Bot",
+  "body": "Rewrite,",
+  "group": "Content Transformation and Formatting Prompts",
+  "context": "Rewriting",
+  "extra": "Rewriter Bot Rewriting",
+  "truncated": false
+ },
+ {
+  "id": "bot-86",
+  "category": "AI Prompts",
+  "title": "ttdt — Data Analyst AI",
+  "body": "ttdt",
+  "group": "Content Transformation and Formatting Prompts",
+  "context": "Data Analysis Table Creation",
+  "extra": "Data Analyst AI Data Analysis Table Creation",
+  "truncated": false
+ },
+ {
+  "id": "bot-87",
+  "category": "AI Prompts",
+  "title": "tttwc — Table Generator",
+  "body": "Turn into a table with the following columns ()",
+  "group": "Content Transformation and Formatting Prompts",
+  "context": "Table Creation",
+  "extra": "Table Generator Table Creation",
+  "truncated": false
+ },
+ {
+  "id": "bot-88",
+  "category": "AI Prompts",
+  "title": "ttmd — Markdown Converter",
+  "body": "Turn to or Write as a codeblock of markdown code,",
+  "group": "Content Transformation and Formatting Prompts",
+  "context": "Markdown Code Conversion",
+  "extra": "Markdown Converter Markdown Code Conversion",
+  "truncated": false
+ },
+ {
+  "id": "bot-89",
+  "category": "AI Prompts",
+  "title": "vrbo — Style Modifier",
+  "body": "verbose and robust,",
+  "group": "Content Transformation and Formatting Prompts",
+  "context": "Style Modifier",
+  "extra": "Style Modifier Style Modifier",
+  "truncated": false
+ },
+ {
+  "id": "bot-8a",
+  "category": "AI Prompts",
+  "title": "waim — Markdown Converter",
+  "body": "Convert all inputs as a codeblock of markdown code: # Formatting and Improvement Guidelines:",
+  "group": "Content Transformation and Formatting Prompts",
+  "context": "Markdown Code Conversion",
+  "extra": "Markdown Converter Markdown Code Conversion",
+  "truncated": false
+ },
+ {
+  "id": "bot-8b",
+  "category": "AI Prompts",
+  "title": "waam — Markdown Converter",
+  "body": "Write that previous answer as a codeblock of markdown code, make sure that the info is not truncated and or reduced, keep all the context From the previous response , keep it the same, o...",
+  "group": "Content Transformation and Formatting Prompts",
+  "context": "Markdown Code Generation (Context Preserving)",
+  "extra": "Markdown Converter Markdown Code Generation (Context Preserving)",
+  "truncated": true
+ },
+ {
+  "id": "bot-8c",
+  "category": "AI Prompts",
+  "title": "canA — Blog Content Creator",
+  "body": "Create a verbose and robust outline of the content as a blog article that is educational and instructional, including tips, tricks, and special features.",
+  "group": "Blog and Article Creation Prompts",
+  "context": "Blog Article Outline Creation",
+  "extra": "Blog Content Creator Blog Article Outline Creation",
+  "truncated": false
+ },
+ {
+  "id": "bot-8d",
+  "category": "AI Prompts",
+  "title": "crta — Blog Content Creator",
+  "body": "Create a blog article about the content below that is verbose and robust while educational.",
+  "group": "Blog and Article Creation Prompts",
+  "context": "Blog Article Creation",
+  "extra": "Blog Content Creator Blog Article Creation",
+  "truncated": false
+ },
+ {
+  "id": "bot-8e",
+  "category": "AI Prompts",
+  "title": "ctyv — Video Content Creator",
+  "body": "Clean the @YouTube link and Create a verbose and robust inspirational, instructional, detailed, descriptive, engaging, motivational, educational blog article From this video:",
+  "group": "Blog and Article Creation Prompts",
+  "context": "YouTube to Blog Article Creation",
+  "extra": "Video Content Creator YouTube to Blog Article Creation",
+  "truncated": false
+ },
+ {
+  "id": "bot-8f",
+  "category": "AI Prompts",
+  "title": "gnfunkey — Engaging Content Creator",
+  "body": "gnfunkey",
+  "group": "Blog and Article Creation Prompts",
+  "context": "Engaging Blog Article Creation",
+  "extra": "Engaging Content Creator Engaging Blog Article Creation",
+  "truncated": false
+ },
+ {
+  "id": "bot-8g",
+  "category": "AI Prompts",
+  "title": "gnke — Keynote Article Generator",
+  "body": "gnke",
+  "group": "Blog and Article Creation Prompts",
+  "context": "Keynote Article Development",
+  "extra": "Keynote Article Generator Keynote Article Development",
+  "truncated": false
+ },
+ {
+  "id": "bot-8h",
+  "category": "AI Prompts",
+  "title": "tsia — Blog Content Creator",
+  "body": "Turn the source info into a blog article that is verbose and robust while educational, and instructional. Include tips, tricks and special Features while being engaging entertaining For a br...",
+  "group": "Blog and Article Creation Prompts",
+  "context": "Blog Article Creation (From Source Info)",
+  "extra": "Blog Content Creator Blog Article Creation (From Source Info)",
+  "truncated": true
+ },
+ {
+  "id": "bot-8i",
+  "category": "AI Prompts",
+  "title": "ttaa — Guide Article Generator",
+  "body": "ttaa",
+  "group": "Blog and Article Creation Prompts",
+  "context": "Guide Article Creation",
+  "extra": "Guide Article Generator Guide Article Creation",
+  "truncated": false
+ },
+ {
+  "id": "bot-8j",
+  "category": "AI Prompts",
+  "title": "ttam — Blog Content Creator",
+  "body": "Turn that into a blog article that is verbose and robust while educational, and instructional. Include tips, tricks and special features while being engaging entertaining For a broad audien...",
+  "group": "Blog and Article Creation Prompts",
+  "context": "Blog Article Creation (Educational/Engaging)",
+  "extra": "Blog Content Creator Blog Article Creation (Educational/Engaging)",
+  "truncated": true
+ },
+ {
+  "id": "bot-8k",
+  "category": "AI Prompts",
+  "title": "ttar — Blog Content Creator",
+  "body": "Turn that the previous response into a blog article that is verbose and robust while educational, and instructional. Include tips, tricks and special Features while being engaging e...",
+  "group": "Blog and Article Creation Prompts",
+  "context": "Blog Article Creation (From Previous Response)",
+  "extra": "Blog Content Creator Blog Article Creation (From Previous Response)",
+  "truncated": true
+ },
+ {
+  "id": "bot-8l",
+  "category": "AI Prompts",
+  "title": "ttbm — Blog Content Creator",
+  "body": "Turn the content below into a blog article that is verbose and robust while educational, and instructional, Include tips, tricks and special features wihile being engaging entertaining For a broad a.",
+  "group": "Blog and Article Creation Prompts",
+  "context": "Blog Article Creation (Educational/Engaging)",
+  "extra": "Blog Content Creator Blog Article Creation (Educational/Engaging)",
+  "truncated": false
+ },
+ {
+  "id": "bot-8m",
+  "category": "AI Prompts",
+  "title": "crmcsum — Summarizer Bot",
+  "body": "create_micro_summary # IDENTITY and PURPOSE...",
+  "group": "Summarization Prompts",
+  "context": "Micro-Summary Creation",
+  "extra": "Summarizer Bot Micro-Summary Creation",
+  "truncated": true
+ },
+ {
+  "id": "bot-8n",
+  "category": "AI Prompts",
+  "title": "smt — Summarizer Bot",
+  "body": "Summarize this.",
+  "group": "Summarization Prompts",
+  "context": "Summarization",
+  "extra": "Summarizer Bot Summarization",
+  "truncated": false
+ },
+ {
+  "id": "bot-8o",
+  "category": "AI Prompts",
+  "title": "smyc — Content Summarizer",
+  "body": "summarize_content",
+  "group": "Summarization Prompts",
+  "context": "Content Summarization",
+  "extra": "Content Summarizer Content Summarization",
+  "truncated": false
+ },
+ {
+  "id": "bot-8p",
+  "category": "AI Prompts",
+  "title": "smyt — Video Summarization AI",
+  "body": "smyt",
+  "group": "Summarization Prompts",
+  "context": "Video Summarization",
+  "extra": "Video Summarization AI Video Summarization",
+  "truncated": false
+ },
+ {
+  "id": "bot-8q",
+  "category": "AI Prompts",
+  "title": "sumc — Content Summarizer Bot",
+  "body": "summarize_content # IDENTITY and PURPOSE You are an expert content",
+  "group": "Summarization Prompts",
+  "context": "Content Summarization",
+  "extra": "Content Summarizer Bot Content Summarization",
+  "truncated": false
+ },
+ {
+  "id": "bot-8r",
+  "category": "AI Prompts",
+  "title": "sumr — Summarizer Bot",
+  "body": "Summarize,",
+  "group": "Summarization Prompts",
+  "context": "Summarization",
+  "extra": "Summarizer Bot Summarization",
+  "truncated": false
+ },
+ {
+  "id": "bot-8s",
+  "category": "AI Prompts",
+  "title": "crbotin — Bot Instructor AI",
+  "body": "Create instructions for a bot that can,",
+  "group": "Action-Oriented Prompts",
+  "context": "Bot Instruction Creation",
+  "extra": "Bot Instructor AI Bot Instruction Creation",
+  "truncated": false
+ },
+ {
+  "id": "bot-8t",
+  "category": "AI Prompts",
+  "title": "dtsf — Task Replicator",
+  "body": "Do the same for this:",
+  "group": "Action-Oriented Prompts",
+  "context": "Task Repetition",
+  "extra": "Task Replicator Task Repetition",
+  "truncated": false
+ },
+ {
+  "id": "bot-8u",
+  "category": "AI Prompts",
+  "title": "fmmm — Form Filling AI",
+  "body": "fmmm",
+  "group": "Action-Oriented Prompts",
+  "context": "Form Filling (Ideal Day)",
+  "extra": "Form Filling AI Form Filling (Ideal Day)",
+  "truncated": false
+ },
+ {
+  "id": "bot-8v",
+  "category": "AI Prompts",
+  "title": "flbd — Form Filling AI",
+  "body": "flbd",
+  "group": "Action-Oriented Prompts",
+  "context": "Form Filling",
+  "extra": "Form Filling AI Form Filling",
+  "truncated": false
+ },
+ {
+  "id": "bot-8w",
+  "category": "AI Prompts",
+  "title": "flfr — Form Filling AI",
+  "body": "Fill out this form:",
+  "group": "Action-Oriented Prompts",
+  "context": "Form Filling",
+  "extra": "Form Filling AI Form Filling",
+  "truncated": false
+ },
+ {
+  "id": "bot-8x",
+  "category": "AI Prompts",
+  "title": "gnlab — Lab Generator AI",
+  "body": "gnlab",
+  "group": "Action-Oriented Prompts",
+  "context": "Instructional Lab Generation",
+  "extra": "Lab Generator AI Instructional Lab Generation",
+  "truncated": false
+ },
+ {
+  "id": "bot-8y",
+  "category": "AI Prompts",
+  "title": "gnpjc — Project Management AI",
+  "body": "gnpjc",
+  "group": "Action-Oriented Prompts",
+  "context": "Project Charter Development",
+  "extra": "Project Management AI Project Charter Development",
+  "truncated": false
+ },
+ {
+  "id": "bot-8z",
+  "category": "AI Prompts",
+  "title": "gnwbs — WBS Generator Bot",
+  "body": "gnwbs",
+  "group": "Action-Oriented Prompts",
+  "context": "WBS & Dictionary Development",
+  "extra": "WBS Generator Bot WBS & Dictionary Development",
+  "truncated": false
+ },
+ {
+  "id": "bot-90",
+  "category": "AI Prompts",
+  "title": "mngt — Activity List Generator",
+  "body": "Consider the task that have not been completed and also Reference the input, previous responses and or sources and Create a activities list following these instructions: # IDENTITY...",
+  "group": "Action-Oriented Prompts",
+  "context": "Activity List Creation",
+  "extra": "Activity List Generator Activity List Creation",
+  "truncated": true
+ },
+ {
+  "id": "bot-91",
+  "category": "AI Prompts",
+  "title": "trca — Audio Transcription AI",
+  "body": "Transcribe all the Audio into text, and improve_writing # IDENTITY and PURPOSE...",
+  "group": "Action-Oriented Prompts",
+  "context": "Audio Transcription & Writing Improvement",
+  "extra": "Audio Transcription AI Audio Transcription & Writing Improvement",
+  "truncated": true
+ },
+ {
+  "id": "bot-92",
+  "category": "AI Prompts",
+  "title": "trci — Transcription & Writing AI",
+  "body": "Transcribe all the text found in the image , and improve_writing # IDENTITY and PURPOSE...",
+  "group": "Action-Oriented Prompts",
+  "context": "Image Transcription & Writing Improvement",
+  "extra": "Transcription & Writing AI Image Transcription & Writing Improvement",
+  "truncated": true
+ },
+ {
+  "id": "bot-93",
+  "category": "AI Prompts",
+  "title": "trcp — Transcription & Writing AI",
+  "body": "Transcribe all the text found in the pdf images , and improve_writing, following these instructions:",
+  "group": "Action-Oriented Prompts",
+  "context": "PDF Transcription & Writing Improvement",
+  "extra": "Transcription & Writing AI PDF Transcription & Writing Improvement",
+  "truncated": false
+ },
+ {
+  "id": "bot-94",
+  "category": "AI Prompts",
+  "title": "trcv — Video Content AI",
+  "body": "Transcribe all the text and or Audio found in the video, and improve_writing",
+  "group": "Action-Oriented Prompts",
+  "context": "Video Transcription & Writing Improvement",
+  "extra": "Video Content AI Video Transcription & Writing Improvement",
+  "truncated": false
+ },
+ {
+  "id": "bot-95",
+  "category": "AI Prompts",
+  "title": "ttacls — Activity List Generator",
+  "body": "Turn into a activities list,",
+  "group": "Action-Oriented Prompts",
+  "context": "Activity List Creation",
+  "extra": "Activity List Generator Activity List Creation",
+  "truncated": false
+ },
+ {
+  "id": "bot-96",
+  "category": "AI Prompts",
+  "title": "ttag — Guide Generator",
+  "body": "Turn the previous response into a verbose and robust step by step guide, with a title (Guide to...), objectives, key takeaways, terms with definitions, tips and a list of action items split into p...",
+  "group": "Action-Oriented Prompts",
+  "context": "Step-by-Step Guide Creation",
+  "extra": "Guide Generator Step-by-Step Guide Creation",
+  "truncated": true
+ },
+ {
+  "id": "bot-97",
+  "category": "AI Prompts",
+  "title": "ttig — Guide Generator",
+  "body": "Turn this int o a verbose and robust step by step quide, with a title, objectives, key takeaways, terms with definitions, tips and a ist of action items split into phases",
+  "group": "Action-Oriented Prompts",
+  "context": "Step-by-Step Guide Creation",
+  "extra": "Guide Generator Step-by-Step Guide Creation",
+  "truncated": false
+ },
+ {
+  "id": "bot-98",
+  "category": "AI Prompts",
+  "title": "ttmeet — Meeting Note Taker",
+  "body": "ttmeet",
+  "group": "Action-Oriented Prompts",
+  "context": "Meeting Notes Generation",
+  "extra": "Meeting Note Taker Meeting Notes Generation",
+  "truncated": false
+ },
+ {
+  "id": "bot-99",
+  "category": "AI Prompts",
+  "title": "ttttl — Tasklist Generator",
+  "body": "Turn into or Create a tasklist,",
+  "group": "Action-Oriented Prompts",
+  "context": "Tasklist Creation",
+  "extra": "Tasklist Generator Tasklist Creation",
+  "truncated": false
+ },
+ {
+  "id": "bot-9a",
+  "category": "AI Prompts",
+  "title": "wmj — Journaling Assistant",
+  "body": "write my journal for what I did today following the custom instructions and source files:",
+  "group": "Action-Oriented Prompts",
+  "context": "Daily Journal Writing",
+  "extra": "Journaling Assistant Daily Journal Writing",
+  "truncated": false
+ },
+ {
+  "id": "bot-9b",
+  "category": "AI Prompts",
+  "title": "wmjftw — Journaling Assistant",
+  "body": "write my journal for what I did for the week Following the custom instructions and source files:",
+  "group": "Action-Oriented Prompts",
+  "context": "Weekly Journal Writing",
+  "extra": "Journaling Assistant Weekly Journal Writing",
+  "truncated": false
+ },
+ {
+  "id": "bot-9c",
+  "category": "AI Prompts",
+  "title": "wmjj — Journaling Assistant",
+  "body": "Write my Journals for me Reference previous responses and or sources and write my journals please following these instructions: IDENTITY and PURPOSE...",
+  "group": "Action-Oriented Prompts",
+  "context": "Journal Writing (Referencing)",
+  "extra": "Journaling Assistant Journal Writing (Referencing)",
+  "truncated": true
+ },
+ {
+  "id": "bot-9d",
+  "category": "AI Prompts",
+  "title": "wmwj — Journaling Assistant",
+  "body": "write my journal for what I did for the week Following the custom instructions and source files, also, Write the answer section as a markdown code block:",
+  "group": "Action-Oriented Prompts",
+  "context": "Weekly Journal Writing (Markdown)",
+  "extra": "Journaling Assistant Weekly Journal Writing (Markdown)",
+  "truncated": false
+ },
+ {
+  "id": "bot-9e",
+  "category": "AI Prompts",
+  "title": "wmyj — Journaling Assistant",
+  "body": "wmyj",
+  "group": "Action-Oriented Prompts",
+  "context": "Yesterday's Journal Writing",
+  "extra": "Journaling Assistant Yesterday's Journal Writing",
+  "truncated": false
+ },
+ {
+  "id": "bot-9f",
+  "category": "AI Prompts",
+  "title": "wmtj — Journaling Assistant",
+  "body": "wmtj",
+  "group": "Action-Oriented Prompts",
+  "context": "Today's Journal Writing",
+  "extra": "Journaling Assistant Today's Journal Writing",
+  "truncated": false
+ },
+ {
+  "id": "bot-9g",
+  "category": "AI Prompts",
+  "title": "ysbc — Task Manager",
+  "body": "You stopped before completing the task, continue at the",
+  "group": "Action-Oriented Prompts",
+  "context": "Task Continuation",
+  "extra": "Task Manager Task Continuation",
+  "truncated": false
+ },
+ {
+  "id": "bot-9h",
+  "category": "AI Prompts",
+  "title": "iptw — Writing Expert Bot",
+  "body": "improve_writing # IDENTITY and PURPOSE You are a writing expert. You",
+  "group": "Optimization Prompts",
+  "context": "Writing Improvement",
+  "extra": "Writing Expert Bot Writing Improvement",
+  "truncated": false
+ },
+ {
+  "id": "bot-9i",
+  "category": "AI Prompts",
+  "title": "optp — Prompt Optimizer",
+  "body": "Optimize this prompt for better AI results",
+  "group": "Optimization Prompts",
+  "context": "Prompt Optimization",
+  "extra": "Prompt Optimizer Prompt Optimization",
+  "truncated": false
+ },
+ {
+  "id": "bot-9j",
+  "category": "AI Prompts",
+  "title": "optt — Optimizer Bot",
+  "body": "Optimize this,",
+  "group": "Optimization Prompts",
+  "context": "Optimization",
+  "extra": "Optimizer Bot Optimization",
+  "truncated": false
+ },
+ {
+  "id": "bot-9k",
+  "category": "AI Prompts",
+  "title": "upip — Prompt Optimizer",
+  "body": "Update and Improve this Prompt:",
+  "group": "Optimization Prompts",
+  "context": "Prompt Improvement",
+  "extra": "Prompt Optimizer Prompt Improvement",
+  "truncated": false
+ },
+ {
+  "id": "bot-9l",
+  "category": "AI Prompts",
+  "title": "prst — Personalization Bot",
+  "body": "Personalize to fit me",
+  "group": "Personalization Prompts",
+  "context": "Personalization",
+  "extra": "Personalization Bot Personalization",
+  "truncated": false
+ },
+ {
+  "id": "bot-9m",
+  "category": "AI Prompts",
+  "title": "rprst — Personalization Bot",
+  "body": "rprst",
+  "group": "Personalization Prompts",
+  "context": "Response Personalization",
+  "extra": "Personalization Bot Response Personalization",
+  "truncated": false
+ },
+ {
+  "id": "bot-9n",
+  "category": "AI Prompts",
+  "title": "fpol — Pattern Analyzer/Organizer",
+  "body": "Find all Patterns, then Organize Items and Elements into lists Groups",
+  "group": "Categorization Prompts",
+  "context": "Pattern Recognition & Grouping",
+  "extra": "Pattern Analyzer/Organizer Pattern Recognition & Grouping",
+  "truncated": false
+ },
+ {
+  "id": "bot-9o",
+  "category": "AI Prompts",
+  "title": "ogic — Categorizer Bot",
+  "body": "organize and group these items into lists by these categories: Business, Personal, Network, Admin, and Production",
+  "group": "Categorization Prompts",
+  "context": "Categorized List Organization",
+  "extra": "Categorizer Bot Categorized List Organization",
+  "truncated": false
+ },
+ {
+  "id": "bot-9p",
+  "category": "AI Prompts",
+  "title": "ogil — Organizer Bot",
+  "body": "organize and group these items into lists",
+  "group": "Categorization Prompts",
+  "context": "Item Organization",
+  "extra": "Organizer Bot Item Organization",
+  "truncated": false
+ },
+ {
+  "id": "bot-9q",
+  "category": "AI Prompts",
+  "title": "orgbc — Categorizer Bot",
+  "body": "organize and group these items i into lists by these Categories: Business, Life, Network, Admin, and Production",
+  "group": "Categorization Prompts",
+  "context": "Categorized List Organization",
+  "extra": "Categorizer Bot Categorized List Organization",
+  "truncated": false
+ },
+ {
+  "id": "bot-9r",
+  "category": "AI Prompts",
+  "title": "orgtl — Organizer Bot",
+  "body": "organize and group these items into lists",
+  "group": "Categorization Prompts",
+  "context": "Item Organization",
+  "extra": "Organizer Bot Item Organization",
+  "truncated": false
+ },
+ {
+  "id": "bot-9s",
+  "category": "AI Prompts",
+  "title": "caaa — Content Creator",
+  "body": "Create a verbose and robust inspirational, instructional, detailed, descriptive, engaging, motivational, educational blog article from this:",
+  "group": "Creative Writing Prompts",
+  "context": "Inspirational Blog Article Creation",
+  "extra": "Content Creator Inspirational Blog Article Creation",
+  "truncated": false
+ },
+ {
+  "id": "bot-9t",
+  "category": "AI Prompts",
+  "title": "gali — Idea Generator",
+  "body": "Generate a list of ideas,",
+  "group": "Creative Writing Prompts",
+  "context": "Idea Generation",
+  "extra": "Idea Generator Idea Generation",
+  "truncated": false
+ },
+ {
+  "id": "bot-9u",
+  "category": "AI Prompts",
+  "title": "gnideal — Idea Generator",
+  "body": "Generate a list of ideas,",
+  "group": "Creative Writing Prompts",
+  "context": "Idea Generation",
+  "extra": "Idea Generator Idea Generation",
+  "truncated": false
+ },
+ {
+  "id": "bot-9v",
+  "category": "AI Prompts",
+  "title": "ttbook — Book Content Generator",
+  "body": "ttbook",
+  "group": "Creative Writing Prompts",
+  "context": "Book Content Generation",
+  "extra": "Book Content Generator Book Content Generation",
+  "truncated": false
+ },
+ {
+  "id": "bot-9w",
+  "category": "AI Prompts",
+  "title": "ttbooks — Book Content Generator",
+  "body": "ttbooks",
+  "group": "Creative Writing Prompts",
+  "context": "Book Content Generation",
+  "extra": "Book Content Generator Book Content Generation",
+  "truncated": false
+ },
+ {
+  "id": "bot-9x",
+  "category": "AI Prompts",
+  "title": "ttoutl — Content Outliner",
+  "body": "ttoutl",
+  "group": "Creative Writing Prompts",
+  "context": "Content Outline Creation",
+  "extra": "Content Outliner Content Outline Creation",
+  "truncated": false
+ },
+ {
+  "id": "bot-9y",
+  "category": "AI Prompts",
+  "title": "genan — Comparative Analysis AI",
+  "body": "Generate a verbose and robust comprehensive comparative analysis of topic] with credible sources",
+  "group": "Technical Analysis Prompts",
+  "context": "Comparative Analysis Generation",
+  "extra": "Comparative Analysis AI Comparative Analysis Generation",
+  "truncated": false
+ },
+ {
+  "id": "bot-9z",
+  "category": "AI Prompts",
+  "title": "gncomp — Comparative Analysis AI",
+  "body": "gncomp",
+  "group": "Technical Analysis Prompts",
+  "context": "Comparative Analysis Generation",
+  "extra": "Comparative Analysis AI Comparative Analysis Generation",
+  "truncated": false
+ },
+ {
+  "id": "bot-a0",
+  "category": "AI Prompts",
+  "title": "gnuse — Use Case Analyst",
+  "body": "gnuse",
+  "group": "Technical Analysis Prompts",
+  "context": "Use Case Analysis & Index Creation",
+  "extra": "Use Case Analyst Use Case Analysis & Index Creation",
+  "truncated": false
+ },
+ {
+  "id": "bot-a1",
+  "category": "AI Prompts",
+  "title": "rfsdu — Response Updater AI",
+  "body": "rfsdu",
+  "group": "Technical Analysis Prompts",
+  "context": "Response Update (Source Referenced)",
+  "extra": "Response Updater AI Response Update (Source Referenced)",
+  "truncated": false
+ },
+ {
+  "id": "bot-a2",
+  "category": "AI Prompts",
+  "title": "rsd — Reference Bot",
+  "body": "rsd",
+  "group": "Technical Analysis Prompts",
+  "context": "Document Referencing",
+  "extra": "Reference Bot Document Referencing",
+  "truncated": false
+ },
+ {
+  "id": "bot-a3",
+  "category": "AI Prompts",
+  "title": "rtsd — Reference Bot",
+  "body": "rtsd",
+  "group": "Technical Analysis Prompts",
+  "context": "Document Referencing",
+  "extra": "Reference Bot Document Referencing",
+  "truncated": false
+ },
+ {
+  "id": "bot-a4",
+  "category": "AI Prompts",
+  "title": "crlist — List Generator",
+  "body": "Turn into or create a list,",
+  "group": "Content Formatting Prompts",
+  "context": "List Creation",
+  "extra": "List Generator List Creation",
+  "truncated": false
+ },
+ {
+  "id": "bot-a5",
+  "category": "AI Prompts",
+  "title": "crcmpt — Table Generator",
+  "body": "Turn into or create a comparison table,",
+  "group": "Content Formatting Prompts",
+  "context": "Comparison Table Creation",
+  "extra": "Table Generator Comparison Table Creation",
+  "truncated": false
+ },
+ {
+  "id": "bot-a6",
+  "category": "AI Prompts",
+  "title": "crrelals — List Generator",
+  "body": "Turn into or Create a list of [items] related to the [topic]",
+  "group": "Content Formatting Prompts",
+  "context": "Related Item List Creation",
+  "extra": "List Generator Related Item List Creation",
+  "truncated": false
+ },
+ {
+  "id": "bot-a7",
+  "category": "AI Prompts",
+  "title": "lslinks — Link Extractor",
+  "body": "List all links found and output as hyperlinks with titles,",
+  "group": "Content Formatting Prompts",
+  "context": "Link Extraction & Formatting",
+  "extra": "Link Extractor Link Extraction & Formatting",
+  "truncated": false
+ },
+ {
+  "id": "bot-a8",
+  "category": "AI Prompts",
+  "title": "lsprom — Prompt Manager",
+  "body": "List all prompts found,",
+  "group": "Content Formatting Prompts",
+  "context": "Prompt Listing",
+  "extra": "Prompt Manager Prompt Listing",
+  "truncated": false
+ },
+ {
+  "id": "bot-a9",
+  "category": "AI Prompts",
+  "title": "aaf",
+  "body": "#NAME?",
+  "group": "Miscellaneous Prompts",
+  "context": "Status/Marker",
+  "extra": "nan Status/Marker",
+  "truncated": false
+ },
+ {
+  "id": "bot-aa",
+  "category": "AI Prompts",
+  "title": "bcoe",
+  "body": "[Bridge] [Chorus] ...",
+  "group": "Miscellaneous Prompts",
+  "context": "Song Structure Element",
+  "extra": "nan Song Structure Element",
+  "truncated": true
+ },
+ {
+  "id": "bot-ab",
+  "category": "AI Prompts",
+  "title": "copyr",
+  "body": "© Kareem Bullard, Visemiami Inc. 2023 All Rights Reserved",
+  "group": "Miscellaneous Prompts",
+  "context": "Copyright Information",
+  "extra": "nan Copyright Information",
+  "truncated": false
+ },
+ {
+  "id": "bot-ac",
+  "category": "AI Prompts",
+  "title": "dscsor — AI Research Assistant Bot",
+  "body": "IDENTITY and PURPOSE You are an AI Research Assistant bot. Your sole purpose is to take any user input, understand its core subject, and then find ...",
+  "group": "Miscellaneous Prompts",
+  "context": "Bot Identity & Purpose",
+  "extra": "AI Research Assistant Bot Bot Identity & Purpose",
+  "truncated": true
+ },
+ {
+  "id": "bot-ad",
+  "category": "AI Prompts",
+  "title": "extmi — Main Idea Extractor",
+  "body": "extract_main_idea # IDENTITY and PURPOSE You extract the primary and/or",
+  "group": "Miscellaneous Prompts",
+  "context": "Main Idea Extraction",
+  "extra": "Main Idea Extractor Main Idea Extraction",
+  "truncated": false
+ },
+ {
+  "id": "bot-ae",
+  "category": "AI Prompts",
+  "title": "gnke2 — Speechwriter/Presenter AI",
+  "body": "gnke2",
+  "group": "Miscellaneous Prompts",
+  "context": "Bot Identity & Purpose (Speechwriter)",
+  "extra": "Speechwriter/Presenter AI Bot Identity & Purpose (Speechwriter)",
+  "truncated": false
+ },
+ {
+  "id": "bot-af",
+  "category": "AI Prompts",
+  "title": "gnnfo — Infographic Generator",
+  "body": "gnnfo",
+  "group": "Miscellaneous Prompts",
+  "context": "Infographic Creation",
+  "extra": "Infographic Generator Infographic Creation",
+  "truncated": false
+ },
+ {
+  "id": "bot-ag",
+  "category": "AI Prompts",
+  "title": "gnaig — Advanced Information Transformer AI",
+  "body": "## Identity and Purpose: You are an advanced AI assistant specializing in transforming information, including guides and task lists, into clear, robust, a...",
+  "group": "Miscellaneous Prompts",
+  "context": "Bot Identity & Purpose (Advanced Information Transformer)",
+  "extra": "Advanced Information Transformer AI Bot Identity & Purpose (Advanced Information Transformer)",
+  "truncated": true
+ },
+ {
+  "id": "bot-ah",
+  "category": "AI Prompts",
+  "title": "mbr",
+  "body": "[Bridge]",
+  "group": "Miscellaneous Prompts",
+  "context": "Song Structure Element",
+  "extra": "nan Song Structure Element",
+  "truncated": false
+ },
+ {
+  "id": "bot-ai",
+  "category": "AI Prompts",
+  "title": "mch",
+  "body": "[Chorus]",
+  "group": "Miscellaneous Prompts",
+  "context": "Song Structure Element",
+  "extra": "nan Song Structure Element",
+  "truncated": false
+ },
+ {
+  "id": "bot-aj",
+  "category": "AI Prompts",
+  "title": "mve",
+  "body": "[Verse]",
+  "group": "Miscellaneous Prompts",
+  "context": "Song Structure Element",
+  "extra": "nan Song Structure Element",
+  "truncated": false
+ },
+ {
+  "id": "bot-ak",
+  "category": "AI Prompts",
+  "title": "nbld — NotebookLM Mimic AI",
+  "body": "# Mimicking the NotebookLM Discover Feature ## IDENTITY and PURPOSE:...",
+  "group": "Miscellaneous Prompts",
+  "context": "Feature Mimicry & Bot Identity",
+  "extra": "NotebookLM Mimic AI Feature Mimicry & Bot Identity",
+  "truncated": true
+ },
+ {
+  "id": "bot-al",
+  "category": "AI Prompts",
+  "title": "rfr — Reference Bot",
+  "body": "rfr",
+  "group": "Miscellaneous Prompts",
+  "context": "General Reference",
+  "extra": "Reference Bot General Reference",
+  "truncated": false
+ },
+ {
+  "id": "bot-am",
+  "category": "AI Prompts",
+  "title": "rflip — Reference Bot",
+  "body": "rflip",
+  "group": "Miscellaneous Prompts",
+  "context": "General Reference",
+  "extra": "Reference Bot General Reference",
+  "truncated": false
+ },
+ {
+  "id": "bot-an",
+  "category": "AI Prompts",
+  "title": "rstwt — Social Media Analyst",
+  "body": "What's Twitter users replying to this, show me the top posts",
+  "group": "Miscellaneous Prompts",
+  "context": "Social Media Analysis",
+  "extra": "Social Media Analyst Social Media Analysis",
+  "truncated": false
+ },
+ {
+  "id": "bot-ao",
+  "category": "AI Prompts",
+  "title": "smyt2 — AI Assistant",
+  "body": "# IDENTITY and PURPOSE: You are an AI assistant tasked with processing inputs that incl...",
+  "group": "Miscellaneous Prompts",
+  "context": "Bot Identity & Purpose",
+  "extra": "AI Assistant Bot Identity & Purpose",
+  "truncated": true
+ },
+ {
+  "id": "bot-ap",
+  "category": "AI Prompts",
+  "title": "ttat — Social Media Content Creator",
+  "body": "Turn into or Write as a tweet,",
+  "group": "Miscellaneous Prompts",
+  "context": "Tweet Generation",
+  "extra": "Social Media Content Creator Tweet Generation",
+  "truncated": false
+ },
+ {
+  "id": "bot-aq",
+  "category": "AI Prompts",
+  "title": "ytia",
+  "body": "Yes this is still available",
+  "group": "Miscellaneous Prompts",
+  "context": "Confirmation",
+  "extra": "nan Confirmation",
+  "truncated": false
+ },
+ {
+  "id": "rx-ar",
+  "category": "Regex",
+  "title": "a|b — Matches a or b",
+  "body": "a|b",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches a or b"
+ },
+ {
+  "id": "rx-as",
+  "category": "Regex",
+  "title": "gr(a|e)y — Matches gray or grey",
+  "body": "gr(a|e)y",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches gray or grey"
+ },
+ {
+  "id": "rx-at",
+  "category": "Regex",
+  "title": ". — Matches any single character",
+  "body": ".",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches any single character"
+ },
+ {
+  "id": "rx-au",
+  "category": "Regex",
+  "title": "[abc] — Matches a single character a, b or c",
+  "body": "[abc]",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches a single character a, b or c"
+ },
+ {
+  "id": "rx-av",
+  "category": "Regex",
+  "title": "[^abc] — Matches any single character except a, b or c",
+  "body": "[^abc]",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches any single character except a, b or c"
+ },
+ {
+  "id": "rx-aw",
+  "category": "Regex",
+  "title": "[a-z] — Matches a single character in the range a to z",
+  "body": "[a-z]",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches a single character in the range a to z"
+ },
+ {
+  "id": "rx-ax",
+  "category": "Regex",
+  "title": "[a-zA-Z] — Matches a single character in the range a to z or A to Z",
+  "body": "[a-zA-Z]",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches a single character in the range a to z or A to Z"
+ },
+ {
+  "id": "rx-ay",
+  "category": "Regex",
+  "title": "^ — Matches the start of the filename",
+  "body": "^",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches the start of the filename"
+ },
+ {
+  "id": "rx-az",
+  "category": "Regex",
+  "title": "$ — Matches the end of the filename",
+  "body": "$",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches the end of the filename"
+ },
+ {
+  "id": "rx-b0",
+  "category": "Regex",
+  "title": "( ) — Defines a marked subexpression",
+  "body": "( )",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Defines a marked subexpression"
+ },
+ {
+  "id": "rx-b1",
+  "category": "Regex",
+  "title": "\\n — Matches what the nth marked subexpression matched, where n is a digit from 1 to 9",
+  "body": "\\n",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches what the nth marked subexpression matched, where n is a digit from 1 to 9"
+ },
+ {
+  "id": "rx-b2",
+  "category": "Regex",
+  "title": "\\b — Match word boundaries",
+  "body": "\\b",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Match word boundaries"
+ },
+ {
+  "id": "rx-b3",
+  "category": "Regex",
+  "title": "(*) — Matches the preceding element zero or more times",
+  "body": "(*)",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches the preceding element zero or more times"
+ },
+ {
+  "id": "rx-b4",
+  "category": "Regex",
+  "title": "? — Matches the preceding element zero or one times",
+  "body": "?",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches the preceding element zero or one times"
+ },
+ {
+  "id": "rx-b5",
+  "category": "Regex",
+  "title": "(+) — Matches the preceding element one or more times",
+  "body": "(+)",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches the preceding element one or more times"
+ },
+ {
+  "id": "rx-b6",
+  "category": "Regex",
+  "title": "*? — Lazily matches the preceding element zero or more times",
+  "body": "*?",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Lazily matches the preceding element zero or more times"
+ },
+ {
+  "id": "rx-b7",
+  "category": "Regex",
+  "title": "+? — Lazily matches the preceding element one or more times",
+  "body": "+?",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Lazily matches the preceding element one or more times"
+ },
+ {
+  "id": "rx-b8",
+  "category": "Regex",
+  "title": "{x} — Matches the preceding element x times",
+  "body": "{x}",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches the preceding element x times"
+ },
+ {
+  "id": "rx-b9",
+  "category": "Regex",
+  "title": "{x,} — Matches the preceding element x or more times",
+  "body": "{x,}",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches the preceding element x or more times"
+ },
+ {
+  "id": "rx-ba",
+  "category": "Regex",
+  "title": "{x,y} — Matches the preceding element between x and y times",
+  "body": "{x,y}",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches the preceding element between x and y times"
+ },
+ {
+  "id": "rx-bb",
+  "category": "Regex",
+  "title": "\\ — Escape special character",
+  "body": "\\",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Escape special character"
+ },
+ {
+  "id": "rx-bc",
+  "category": "Regex",
+  "title": "\\Q...\\E — Literal sequence ...",
+  "body": "\\Q...\\E",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Literal sequence ..."
+ },
+ {
+  "id": "rx-bd",
+  "category": "Regex",
+  "title": "\\a — Alarm, that is, the BEL character (hex 07)",
+  "body": "\\a",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Alarm, that is, the BEL character (hex 07)"
+ },
+ {
+  "id": "rx-be",
+  "category": "Regex",
+  "title": "\\cx — \"Control-x\", where x is any ASCII character",
+  "body": "\\cx",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "\"Control-x\", where x is any ASCII character"
+ },
+ {
+  "id": "rx-bf",
+  "category": "Regex",
+  "title": "\\e — Escape (hex 1B)",
+  "body": "\\e",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Escape (hex 1B)"
+ },
+ {
+  "id": "rx-bg",
+  "category": "Regex",
+  "title": "\\f — Form feed (hex 0C)",
+  "body": "\\f",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Form feed (hex 0C)"
+ },
+ {
+  "id": "rx-bh",
+  "category": "Regex",
+  "title": "\\n — Linefeed (hex 0A)",
+  "body": "\\n",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Linefeed (hex 0A)"
+ },
+ {
+  "id": "rx-bi",
+  "category": "Regex",
+  "title": "\\r — Carriage return (hex 0D)",
+  "body": "\\r",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Carriage return (hex 0D)"
+ },
+ {
+  "id": "rx-bj",
+  "category": "Regex",
+  "title": "\\t — Tab (hex 09)",
+  "body": "\\t",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Tab (hex 09)"
+ },
+ {
+  "id": "rx-bk",
+  "category": "Regex",
+  "title": "\\0dd — Character with octal code 0dd",
+  "body": "\\0dd",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Character with octal code 0dd"
+ },
+ {
+  "id": "rx-bl",
+  "category": "Regex",
+  "title": "\\ddd — Character with octal code ddd, or back reference",
+  "body": "\\ddd",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Character with octal code ddd, or back reference"
+ },
+ {
+  "id": "rx-bm",
+  "category": "Regex",
+  "title": "\\o{ddd..} — Character with octal code ddd..",
+  "body": "\\o{ddd..}",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Character with octal code ddd.."
+ },
+ {
+  "id": "rx-bn",
+  "category": "Regex",
+  "title": "\\xhh — Character with hex code hh",
+  "body": "\\xhh",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Character with hex code hh"
+ },
+ {
+  "id": "rx-bo",
+  "category": "Regex",
+  "title": "\\x{hhh..} — Character with hex code hhh..",
+  "body": "\\x{hhh..}",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Character with hex code hhh.."
+ },
+ {
+  "id": "rx-bp",
+  "category": "Regex",
+  "title": "\\d — Any decimal digit",
+  "body": "\\d",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Any decimal digit"
+ },
+ {
+  "id": "rx-bq",
+  "category": "Regex",
+  "title": "\\D — Any character that is not a decimal digit",
+  "body": "\\D",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Any character that is not a decimal digit"
+ },
+ {
+  "id": "rx-br",
+  "category": "Regex",
+  "title": "\\h — Any horizontal white space character",
+  "body": "\\h",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Any horizontal white space character"
+ },
+ {
+  "id": "rx-bs",
+  "category": "Regex",
+  "title": "\\H — Any character that is not a horizontal white space character",
+  "body": "\\H",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Any character that is not a horizontal white space character"
+ },
+ {
+  "id": "rx-bt",
+  "category": "Regex",
+  "title": "\\s — Any white space character",
+  "body": "\\s",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Any white space character"
+ },
+ {
+  "id": "rx-bu",
+  "category": "Regex",
+  "title": "\\S — Any character that is not a white space character",
+  "body": "\\S",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Any character that is not a white space character"
+ },
+ {
+  "id": "rx-bv",
+  "category": "Regex",
+  "title": "\\v — Any vertical white space character",
+  "body": "\\v",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Any vertical white space character"
+ },
+ {
+  "id": "rx-bw",
+  "category": "Regex",
+  "title": "\\V — Any character that is not a vertical white space character",
+  "body": "\\V",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Any character that is not a vertical white space character"
+ },
+ {
+  "id": "rx-bx",
+  "category": "Regex",
+  "title": "\\w — Any \"word\" character",
+  "body": "\\w",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Any \"word\" character"
+ },
+ {
+  "id": "rx-by",
+  "category": "Regex",
+  "title": "\\W — Any \"non-word\" character",
+  "body": "\\W",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Any \"non-word\" character"
+ },
+ {
+  "id": "rx-bz",
+  "category": "Regex",
+  "title": "\\p{xx} — A character with the xx property",
+  "body": "\\p{xx}",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "A character with the xx property"
+ },
+ {
+  "id": "rx-c0",
+  "category": "Regex",
+  "title": "\\P{xx} — A character without the xx property",
+  "body": "\\P{xx}",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "A character without the xx property"
+ },
+ {
+  "id": "rx-c1",
+  "category": "Regex",
+  "title": "\\X — A Unicode extended grapheme cluster",
+  "body": "\\X",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "A Unicode extended grapheme cluster"
+ },
+ {
+  "id": "rx-c2",
+  "category": "Regex",
+  "title": "\\b — Matches at a word boundary",
+  "body": "\\b",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches at a word boundary"
+ },
+ {
+  "id": "rx-c3",
+  "category": "Regex",
+  "title": "\\B — Matches when not at a word boundary",
+  "body": "\\B",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches when not at a word boundary"
+ },
+ {
+  "id": "rx-c4",
+  "category": "Regex",
+  "title": "\\A — Matches at the start of the subject",
+  "body": "\\A",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches at the start of the subject"
+ },
+ {
+  "id": "rx-c5",
+  "category": "Regex",
+  "title": "\\Z — Matches at the end of the subject also matches before a newline at the end of the subject",
+  "body": "\\Z",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches at the end of the subject also matches before a newline at the end of the subject"
+ },
+ {
+  "id": "rx-c6",
+  "category": "Regex",
+  "title": "\\z — Matches only at the end of the subject",
+  "body": "\\z",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches only at the end of the subject"
+ },
+ {
+  "id": "rx-c7",
+  "category": "Regex",
+  "title": "\\G — Matches at the first matching position in the subject",
+  "body": "\\G",
+  "group": "Regex Syntax",
+  "context": "",
+  "extra": "Matches at the first matching position in the subject"
+ },
+ {
+  "id": "py-c8",
+  "category": "Python Utilities",
+  "title": "sanitize_filename()",
+  "body": "sanitize_filename",
+  "group": "csv_utils",
+  "context": "",
+  "extra": "Sanitize a string to make it a valid file or folder name.  Parameters: - name (str): Original name.  Returns: - str or None: Sanitized name or None if invalid."
+ },
+ {
+  "id": "py-c9",
+  "category": "Python Utilities",
+  "title": "select_file_or_directory()",
+  "body": "select_file_or_directory",
+  "group": "csv_utils",
+  "context": "",
+  "extra": "Opens a dialog to select the input file or directory."
+ },
+ {
+  "id": "py-ca",
+  "category": "Python Utilities",
+  "title": "csv_to_json()",
+  "body": "csv_to_json",
+  "group": "csv_utils",
+  "context": "",
+  "extra": "Converts a CSV file to a JSON file."
+ },
+ {
+  "id": "py-cb",
+  "category": "Python Utilities",
+  "title": "select_file()",
+  "body": "select_file",
+  "group": "csv_utils",
+  "context": "",
+  "extra": "Opens a dialog to select the input file."
+ },
+ {
+  "id": "py-cc",
+  "category": "Python Utilities",
+  "title": "read_csv_file()",
+  "body": "read_csv_file",
+  "group": "csv_utils",
+  "context": "",
+  "extra": "Reads a CSV file into a pandas DataFrame."
+ },
+ {
+  "id": "py-cd",
+  "category": "Python Utilities",
+  "title": "write_csv_file()",
+  "body": "write_csv_file",
+  "group": "csv_utils",
+  "context": "",
+  "extra": "Writes a pandas DataFrame to a CSV file."
+ },
+ {
+  "id": "py-ce",
+  "category": "Python Utilities",
+  "title": "read_csv_with_progress()",
+  "body": "read_csv_with_progress",
+  "group": "csv_utils",
+  "context": "",
+  "extra": "Reads a csv file with progress tracking."
+ },
+ {
+  "id": "py-cf",
+  "category": "Python Utilities",
+  "title": "fetch_Coda.io_data()",
+  "body": "fetch_Coda.io_data",
+  "group": "csv_utils",
+  "context": "",
+  "extra": "Fetches all records from a specified Coda.io table."
+ },
+ {
+  "id": "py-cg",
+  "category": "Python Utilities",
+  "title": "parse_json_data()",
+  "body": "parse_json_data",
+  "group": "csv_utils",
+  "context": "",
+  "extra": "Parses JSON data from a file."
+ },
+ {
+  "id": "py-ch",
+  "category": "Python Utilities",
+  "title": "generate_weekly_newsletter()",
+  "body": "generate_weekly_newsletter",
+  "group": "csv_utils",
+  "context": "",
+  "extra": "No docstring available."
+ },
+ {
+  "id": "py-ci",
+  "category": "Python Utilities",
+  "title": "update_Coda.io_fields()",
+  "body": "update_Coda.io_fields",
+  "group": "csv_utils",
+  "context": "",
+  "extra": "Updates fields in a Coda.io Table."
+ },
+ {
+  "id": "py-cj",
+  "category": "Python Utilities",
+  "title": "is_csv()",
+  "body": "is_csv",
+  "group": "csv_utils",
+  "context": "",
+  "extra": "Checks if a file is a CSV file based on extension."
+ },
+ {
+  "id": "py-ck",
+  "category": "Python Utilities",
+  "title": "generate_blog_post_from_ai()",
+  "body": "generate_blog_post_from_ai",
+  "group": "data_utils",
+  "context": "",
+  "extra": "Generates a blog post using OpenAI."
+ },
+ {
+  "id": "py-cl",
+  "category": "Python Utilities",
+  "title": "fetch_feed_data()",
+  "body": "fetch_feed_data",
+  "group": "data_utils",
+  "context": "",
+  "extra": "Fetches data from an XML feed."
+ },
+ {
+  "id": "py-cm",
+  "category": "Python Utilities",
+  "title": "parse_xml_data()",
+  "body": "parse_xml_data",
+  "group": "data_utils",
+  "context": "",
+  "extra": "Parses XML data from a file."
+ },
+ {
+  "id": "py-cn",
+  "category": "Python Utilities",
+  "title": "generate_blog_post()",
+  "body": "generate_blog_post",
+  "group": "data_utils",
+  "context": "",
+  "extra": "No docstring available."
+ },
+ {
+  "id": "py-co",
+  "category": "Python Utilities",
+  "title": "process_file()",
+  "body": "process_file",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Processes a single CSV file uploaded through Flask."
+ },
+ {
+  "id": "py-cp",
+  "category": "Python Utilities",
+  "title": "clean_and_sort_csv_files()",
+  "body": "clean_and_sort_csv_files",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Cleans all CSV files in a folder by removing empty columns and columns containing ['rec'], then sorting columns from left to right by the number of non-empty entries.  Parameters:     folder_path (str): Path to the folder containing the CSV files."
+ },
+ {
+  "id": "py-cq",
+  "category": "Python Utilities",
+  "title": "clean_csv_files()",
+  "body": "clean_csv_files",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Cleans all CSV files in a folder by removing any column where ['rec'] appears more than 10 times.  Parameters:     folder_path (str): Path to the folder containing the CSV files."
+ },
+ {
+  "id": "py-cr",
+  "category": "Python Utilities",
+  "title": "process_markdown_files()",
+  "body": "process_markdown_files",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Process all text files in a directory, converting Markdown to plain text.  Parameters: - directory (str): Path to the directory containing text files."
+ },
+ {
+  "id": "py-cs",
+  "category": "Python Utilities",
+  "title": "convert_md_to_txt()",
+  "body": "convert_md_to_txt",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Converts a Markdown (.md) file to a .txt file."
+ },
+ {
+  "id": "py-ct",
+  "category": "Python Utilities",
+  "title": "convert_all_md_to_txt()",
+  "body": "convert_all_md_to_txt",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Converts all .md files in a directory (and its subdirectories) to .txt files. Ensures no overwrite by creating unique names for output files."
+ },
+ {
+  "id": "py-cu",
+  "category": "Python Utilities",
+  "title": "copy_txt_files_and_folders()",
+  "body": "copy_txt_files_and_folders",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Copies all folders and .txt files from the source directory to the destination directory. Maintains the directory structure."
+ },
+ {
+  "id": "py-cv",
+  "category": "Python Utilities",
+  "title": "create_folders()",
+  "body": "create_folders",
+  "group": "file_utils",
+  "context": "",
+  "extra": "No docstring available."
+ },
+ {
+  "id": "py-cw",
+  "category": "Python Utilities",
+  "title": "create_folders_from_list()",
+  "body": "create_folders_from_list",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Creates a directory with folders based on the items listed in a text file.  Args:     txt_file_path (str): The path to the text file containing the list.     base_dir (str): The base directory where the folders will be created."
+ },
+ {
+  "id": "py-cx",
+  "category": "Python Utilities",
+  "title": "create_directory_structure()",
+  "body": "create_directory_structure",
+  "group": "file_utils",
+  "context": "",
+  "extra": "No docstring available."
+ },
+ {
+  "id": "py-cy",
+  "category": "Python Utilities",
+  "title": "process_directory()",
+  "body": "process_directory",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Processes all CSV files in a given directory."
+ },
+ {
+  "id": "py-cz",
+  "category": "Python Utilities",
+  "title": "split_csv_by_headers()",
+  "body": "split_csv_by_headers",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Splits a CSV file into multiple files based on headers."
+ },
+ {
+  "id": "py-d0",
+  "category": "Python Utilities",
+  "title": "split_csv_by_column()",
+  "body": "split_csv_by_column",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Splits a CSV file into multiple files based on the values of a given column."
+ },
+ {
+  "id": "py-d1",
+  "category": "Python Utilities",
+  "title": "convert_docx_to_txt()",
+  "body": "convert_docx_to_txt",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Converts a .docx file to a .txt file using python-docx."
+ },
+ {
+  "id": "py-d2",
+  "category": "Python Utilities",
+  "title": "convert_all_docs_to_txt()",
+  "body": "convert_all_docs_to_txt",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Converts all .doc and .docx files in a directory (and its subdirectories) to .txt files. Keeps both files and ensures no overwrite by creating unique names."
+ },
+ {
+  "id": "py-d3",
+  "category": "Python Utilities",
+  "title": "convert_files()",
+  "body": "convert_files",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Converts .md, .doc, and .docx files in a directory to .txt files."
+ },
+ {
+  "id": "py-d4",
+  "category": "Python Utilities",
+  "title": "run_conversion()",
+  "body": "run_conversion",
+  "group": "file_utils",
+  "context": "",
+  "extra": "No docstring available."
+ },
+ {
+  "id": "py-d5",
+  "category": "Python Utilities",
+  "title": "is_image()",
+  "body": "is_image",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Checks if a file is an image using magic."
+ },
+ {
+  "id": "py-d6",
+  "category": "Python Utilities",
+  "title": "get_filename_without_extension()",
+  "body": "get_filename_without_extension",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Extracts the filename without the extension."
+ },
+ {
+  "id": "py-d7",
+  "category": "Python Utilities",
+  "title": "change_file_extension()",
+  "body": "change_file_extension",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Changes the extension of a file path."
+ },
+ {
+  "id": "py-d8",
+  "category": "Python Utilities",
+  "title": "get_all_files_in_directory()",
+  "body": "get_all_files_in_directory",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Gets a list of all files within a directory.  Args:     directory_path (str): Path to the directory.     extensions (list of str, optional): List of file extensions to filter by (e.g., ['.txt', '.csv']). Defaults to None (all files).     recursive (bool, optional): Whether to search recursively in subdirectories. Defaults to True.  Returns:     list of str: List of absolute file paths."
+ },
+ {
+  "id": "py-d9",
+  "category": "Python Utilities",
+  "title": "get_all_directories_in_directory()",
+  "body": "get_all_directories_in_directory",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Gets a list of all directories within a directory."
+ },
+ {
+  "id": "py-da",
+  "category": "Python Utilities",
+  "title": "remove_empty_directories()",
+  "body": "remove_empty_directories",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Removes empty directories recursively."
+ },
+ {
+  "id": "py-db",
+  "category": "Python Utilities",
+  "title": "create_nested_directory_structure()",
+  "body": "create_nested_directory_structure",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Creates a nested directory structure based on a dict."
+ },
+ {
+  "id": "py-dc",
+  "category": "Python Utilities",
+  "title": "move_file()",
+  "body": "move_file",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Moves a file from source to destination."
+ },
+ {
+  "id": "py-dd",
+  "category": "Python Utilities",
+  "title": "copy_file()",
+  "body": "copy_file",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Copies a file from source to destination."
+ },
+ {
+  "id": "py-de",
+  "category": "Python Utilities",
+  "title": "batch_rename_files()",
+  "body": "batch_rename_files",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Renames files in a directory using regex."
+ },
+ {
+  "id": "py-df",
+  "category": "Python Utilities",
+  "title": "process_files_with_colon_formatting()",
+  "body": "process_files_with_colon_formatting",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Process all text files in a directory, formatting lines with colons.  Parameters: - directory (str): Path to the directory containing text files."
+ },
+ {
+  "id": "py-dg",
+  "category": "Python Utilities",
+  "title": "process_markdown_files_with_colon()",
+  "body": "process_markdown_files_with_colon",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Process all text files in a directory, converting Markdown to plain text with colon formatting.  Parameters: - directory (str): Path to the directory containing text files."
+ },
+ {
+  "id": "py-dh",
+  "category": "Python Utilities",
+  "title": "insert_content_line()",
+  "body": "insert_content_line",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Inserts a line containing 'Content: ' after every line that contains 'Date: '.  Args:     file_path (str): The path to the input text file.     output_path (str, optional): The path to the output text file.                                  If not provided, the original file will be overwritten."
+ },
+ {
+  "id": "py-di",
+  "category": "Python Utilities",
+  "title": "traverse_directory()",
+  "body": "traverse_directory",
+  "group": "file_utils",
+  "context": "",
+  "extra": "No docstring available."
+ },
+ {
+  "id": "py-dj",
+  "category": "Python Utilities",
+  "title": "merge_md_files()",
+  "body": "merge_md_files",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Merges all .md files in the specified directory into one file.  Parameters:     directory (str): Path to the directory containing .md files.     output_file (str): Path for the output .md file."
+ },
+ {
+  "id": "py-dk",
+  "category": "Python Utilities",
+  "title": "merge_csvs_by_prefix_into_workbooks()",
+  "body": "merge_csvs_by_prefix_into_workbooks",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Merges CSV files that start with the same prefix into separate Excel workbooks.  Parameters:     folder_path (str): Path to the folder containing the CSV files.     output_folder (str): Path to save the resulting Excel workbooks."
+ },
+ {
+  "id": "py-dl",
+  "category": "Python Utilities",
+  "title": "merge_csvs_to_excel()",
+  "body": "merge_csvs_to_excel",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Merges all CSV files in a folder into an Excel workbook.  Parameters:     folder_path (str): Path to the folder containing the CSV files.     output_file (str): Path to save the resulting Excel workbook."
+ },
+ {
+  "id": "py-dm",
+  "category": "Python Utilities",
+  "title": "extract_python_elements(directory)",
+  "body": "extract_python_elements(directory)",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Extracts unique functions, classes, and variables from Python files in a directory."
+ },
+ {
+  "id": "py-dn",
+  "category": "Python Utilities",
+  "title": "create_module_file()",
+  "body": "create_module_file",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Creates a module file with the given elements."
+ },
+ {
+  "id": "py-do",
+  "category": "Python Utilities",
+  "title": "create_package()",
+  "body": "create_package",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Creates a package with the extracted modules."
+ },
+ {
+  "id": "py-dp",
+  "category": "Python Utilities",
+  "title": "create_docs(package_name,()",
+  "body": "create_docs(package_name,",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Creates documentation files for the modules."
+ },
+ {
+  "id": "py-dq",
+  "category": "Python Utilities",
+  "title": "classify_code(elements)",
+  "body": "classify_code(elements)",
+  "group": "file_utils",
+  "context": "",
+  "extra": "No docstring available."
+ },
+ {
+  "id": "py-dr",
+  "category": "Python Utilities",
+  "title": "merge_folders()",
+  "body": "merge_folders",
+  "group": "file_utils",
+  "context": "",
+  "extra": "No docstring available."
+ },
+ {
+  "id": "py-ds",
+  "category": "Python Utilities",
+  "title": "create_projects()",
+  "body": "create_projects",
+  "group": "file_utils",
+  "context": "",
+  "extra": "No docstring available."
+ },
+ {
+  "id": "py-dt",
+  "category": "Python Utilities",
+  "title": "create_directory()",
+  "body": "create_directory",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Create a directory if it doesn't exist."
+ },
+ {
+  "id": "py-du",
+  "category": "Python Utilities",
+  "title": "move_folder()",
+  "body": "move_folder",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Move a folder from old_path to new_path."
+ },
+ {
+  "id": "py-dv",
+  "category": "Python Utilities",
+  "title": "update_projects()",
+  "body": "update_projects",
+  "group": "file_utils",
+  "context": "",
+  "extra": "No docstring available."
+ },
+ {
+  "id": "py-dw",
+  "category": "Python Utilities",
+  "title": "count_words_and_characters_in_directory()",
+  "body": "count_words_and_characters_in_directory",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Count words and characters in all files within a directory."
+ },
+ {
+  "id": "py-dx",
+  "category": "Python Utilities",
+  "title": "count_words_in_directory()",
+  "body": "count_words_in_directory",
+  "group": "file_utils",
+  "context": "",
+  "extra": "No docstring available."
+ },
+ {
+  "id": "py-dy",
+  "category": "Python Utilities",
+  "title": "create_docs()",
+  "body": "create_docs",
+  "group": "file_utils",
+  "context": "",
+  "extra": "Creates documentation files for the modules."
+ },
+ {
+  "id": "py-dz",
+  "category": "Python Utilities",
+  "title": "csv_to_formatted_txt()",
+  "body": "csv_to_formatted_txt",
+  "group": "text_utils",
+  "context": "",
+  "extra": "Converts a CSV file to a formatted text file."
+ },
+ {
+  "id": "py-e0",
+  "category": "Python Utilities",
+  "title": "Code Snippet()",
+  "body": "Code Snippet",
+  "group": "text_utils",
+  "context": "",
+  "extra": ""
+ },
+ {
+  "id": "py-e1",
+  "category": "Python Utilities",
+  "title": "markdown_to_plaintext()",
+  "body": "markdown_to_plaintext",
+  "group": "text_utils",
+  "context": "",
+  "extra": "Convert Markdown text to plain text by removing or replacing Markdown syntax.  Parameters: - text (str): The Markdown-formatted text.  Returns: - str: The plain text."
+ },
+ {
+  "id": "py-e2",
+  "category": "Python Utilities",
+  "title": "apply_custom_transformation()",
+  "body": "apply_custom_transformation",
+  "group": "text_utils",
+  "context": "",
+  "extra": "Applies a custom transformation function to a CSV file."
+ },
+ {
+  "id": "py-e3",
+  "category": "Python Utilities",
+  "title": "run_action()",
+  "body": "run_action",
+  "group": "text_utils",
+  "context": "",
+  "extra": "No docstring available."
+ },
+ {
+  "id": "py-e4",
+  "category": "Python Utilities",
+  "title": "update_transformation_text()",
+  "body": "update_transformation_text",
+  "group": "text_utils",
+  "context": "",
+  "extra": "No docstring available."
+ },
+ {
+  "id": "py-e5",
+  "category": "Python Utilities",
+  "title": "main_newsletter()",
+  "body": "main_newsletter",
+  "group": "text_utils",
+  "context": "",
+  "extra": "No docstring available."
+ },
+ {
+  "id": "py-e6",
+  "category": "Python Utilities",
+  "title": "convert_doc_to_txt_with_pywin32()",
+  "body": "convert_doc_to_txt_with_pywin32",
+  "group": "text_utils",
+  "context": "",
+  "extra": "Converts a .doc file to a .txt file using pywin32 to automate Microsoft Word."
+ },
+ {
+  "id": "py-e7",
+  "category": "Python Utilities",
+  "title": "doc_to_txt()",
+  "body": "doc_to_txt",
+  "group": "text_utils",
+  "context": "",
+  "extra": "Converts a Word (.doc) file to plain text (.txt) using pypandoc."
+ },
+ {
+  "id": "py-e8",
+  "category": "Python Utilities",
+  "title": "txt_to_doc()",
+  "body": "txt_to_doc",
+  "group": "text_utils",
+  "context": "",
+  "extra": "Converts a plain text file to .doc using pypandoc"
+ },
+ {
+  "id": "py-e9",
+  "category": "Python Utilities",
+  "title": "format_colon_lines()",
+  "body": "format_colon_lines",
+  "group": "text_utils",
+  "context": "",
+  "extra": "Format text such that: - Lines with a colon are split into a bold heading and content on a new line.  Parameters: - text (str): The input text.  Returns: - str: The formatted text."
+ },
+ {
+  "id": "py-ea",
+  "category": "Python Utilities",
+  "title": "markdown_to_plaintext_with_colon_formatting()",
+  "body": "markdown_to_plaintext_with_colon_formatting",
+  "group": "text_utils",
+  "context": "",
+  "extra": "Convert Markdown text to plain text with custom formatting: - Add a line break after colons followed by a space. - Make lines with colons bold or headings.  Parameters: - text (str): The Markdown-formatted text.  Returns: - str: The formatted text."
+ },
+ {
+  "id": "py-eb",
+  "category": "Python Utilities",
+  "title": "main()",
+  "body": "main",
+  "group": "text_utils",
+  "context": "",
+  "extra": "No docstring available."
+ },
+ {
+  "id": "py-ec",
+  "category": "Python Utilities",
+  "title": "remove_non_alphanumeric()",
+  "body": "remove_non_alphanumeric",
+  "group": "text_utils",
+  "context": "",
+  "extra": "Removes all characters except letters, numbers, and spaces."
+ },
+ {
+  "id": "py-ed",
+  "category": "Python Utilities",
+  "title": "wrap_text()",
+  "body": "wrap_text",
+  "group": "text_utils",
+  "context": "",
+  "extra": "Wraps text to a specific line width."
+ },
+ {
+  "id": "py-ee",
+  "category": "Python Utilities",
+  "title": "replace_multiple_spaces()",
+  "body": "replace_multiple_spaces",
+  "group": "text_utils",
+  "context": "",
+  "extra": "Replaces multiple spaces with a single space."
+ },
+ {
+  "id": "py-ef",
+  "category": "Python Utilities",
+  "title": "extract_email_addresses()",
+  "body": "extract_email_addresses",
+  "group": "text_utils",
+  "context": "",
+  "extra": "Extracts email addresses from a string using regular expressions."
+ },
+ {
+  "id": "py-eg",
+  "category": "Python Utilities",
+  "title": "extract_links()",
+  "body": "extract_links",
+  "group": "text_utils",
+  "context": "",
+  "extra": "Extracts all links from markdown formatted text."
+ },
+ {
+  "id": "py-eh",
+  "category": "Python Utilities",
+  "title": "remove_images()",
+  "body": "remove_images",
+  "group": "text_utils",
+  "context": "",
+  "extra": "Removes images from markdown text."
+ },
+ {
+  "id": "py-ei",
+  "category": "Python Utilities",
+  "title": "extract_text_from_doc()",
+  "body": "extract_text_from_doc",
+  "group": "text_utils",
+  "context": "",
+  "extra": "Converts a .doc file to a .txt file using pywin32 to automate Microsoft Word."
+ },
+ {
+  "id": "py-ej",
+  "category": "Python Utilities",
+  "title": "get_document_metadata()",
+  "body": "get_document_metadata",
+  "group": "text_utils",
+  "context": "",
+  "extra": "Extracts metadata from a docx or doc file."
+ },
+ {
+  "id": "py-ek",
+  "category": "Python Utilities",
+  "title": "convert_docx_to_pdf()",
+  "body": "convert_docx_to_pdf",
+  "group": "text_utils",
+  "context": "",
+  "extra": "Converts a docx file to a pdf file."
+ },
+ {
+  "id": "py-el",
+  "category": "Python Utilities",
+  "title": "convert_docx_to_txt()",
+  "body": "convert_docx_to_txt",
+  "group": "word_utils",
+  "context": "",
+  "extra": "No docstring available."
+ },
+ {
+  "id": "py-em",
+  "category": "Python Utilities",
+  "title": "is_word_installed()",
+  "body": "is_word_installed",
+  "group": "word_utils",
+  "context": "",
+  "extra": "Checks if Microsoft Word is installed and accessible."
+ },
+ {
+  "id": "py-en",
+  "category": "Python Utilities",
+  "title": "cleanup_word_instances()",
+  "body": "cleanup_word_instances",
+  "group": "word_utils",
+  "context": "",
+  "extra": "Ensures that all Word instances are closed when the script exits."
+ },
+ {
+  "id": "py-eo",
+  "category": "Python Utilities",
+  "title": "docx_to_txt()",
+  "body": "docx_to_txt",
+  "group": "word_utils",
+  "context": "",
+  "extra": "Converts a Word (.docx) file to plain text (.txt)."
+ },
+ {
+  "id": "py-ep",
+  "category": "Python Utilities",
+  "title": "txt_to_docx()",
+  "body": "txt_to_docx",
+  "group": "word_utils",
+  "context": "",
+  "extra": "Converts a plain text (.txt) to a word docx file(.docx)"
+ },
+ {
+  "id": "py-eq",
+  "category": "Python Utilities",
+  "title": "extract_all_text_from_docx()",
+  "body": "extract_all_text_from_docx",
+  "group": "word_utils",
+  "context": "",
+  "extra": "Extract all text content from a .docx file."
+ },
+ {
+  "id": "py-er",
+  "category": "Python Utilities",
+  "title": "extract_tables_from_docx()",
+  "body": "extract_tables_from_docx",
+  "group": "word_utils",
+  "context": "",
+  "extra": "Extract tables from a .docx file and returns them in a dictionary."
+ },
+ {
+  "id": "py-es",
+  "category": "Python Utilities",
+  "title": "replace_text_in_docx()",
+  "body": "replace_text_in_docx",
+  "group": "word_utils",
+  "context": "",
+  "extra": "Replaces all occurrences of text in a docx file."
+ },
+ {
+  "id": "py-et",
+  "category": "Python Utilities",
+  "title": "close_all_word_processes()",
+  "body": "close_all_word_processes",
+  "group": "word_utils",
+  "context": "",
+  "extra": "Ensures that all Word instances are closed when the script exits."
+ },
+ {
+  "id": "py-eu",
+  "category": "Python Utilities",
+  "title": "kill_long_running_word_processes()",
+  "body": "kill_long_running_word_processes",
+  "group": "word_utils",
+  "context": "",
+  "extra": "Kills Word processes that have been running longer than max_runtime_seconds."
+ },
+ {
+  "id": "py-ev",
+  "category": "Python Utilities",
+  "title": "main()",
+  "body": "main",
+  "group": "word_utils",
+  "context": "",
+  "extra": "No docstring available."
+ },
+ {
+  "id": "at-ew",
+  "category": "Airtable Shortcuts",
+  "title": "/caifea — Create an Image for each of the img src alt= sections",
+  "body": "Create an Image for each of the img src alt= sections found in the article",
+  "group": "Text Blaze",
+  "context": "Image Gen",
+  "extra": "Production /caifea"
+ },
+ {
+  "id": "at-ex",
+  "category": "Airtable Shortcuts",
+  "title": "/tidt — Turn this into a table using data analysis tools",
+  "body": "Turn this into a table using data analysis tools and make it expandable and downloadable",
+  "group": "SwiftKey",
+  "context": "Structure/Table",
+  "extra": "Business /tidt"
+ },
+ {
+  "id": "at-ey",
+  "category": "Airtable Shortcuts",
+  "title": "/mia — Afrofuturism Art Prompt",
+  "body": "Make it Afrofuturistic",
+  "group": "SwiftKey",
+  "context": "Image Gen",
+  "extra": "Production /mia"
+ },
+ {
+  "id": "at-ez",
+  "category": "Airtable Shortcuts",
+  "title": "/dstt — Don't Summarize the Table",
+  "body": "Make sure include all the information from each area in the table don't summarize or reduce use all the info",
+  "group": "Text Blaze",
+  "context": "Structure/Table",
+  "extra": "Production /dstt"
+ },
+ {
+  "id": "at-f0",
+  "category": "Airtable Shortcuts",
+  "title": "/gaak — African King Image Prompt",
+  "body": "Generate A photorealistic 5k HD well-lit bright colorful and vibrant image of a handsome fit African king",
+  "group": "SwiftKey",
+  "context": "Image Gen",
+  "extra": "Production /gaak"
+ },
+ {
+  "id": "at-f1",
+  "category": "Airtable Shortcuts",
+  "title": "/caieb — Create a instructional, educational blog",
+  "body": "Create a instructional, educational blog article, include tips, tricks, and special features for and about:",
+  "group": "Text Blaze",
+  "context": "Convert",
+  "extra": "Education /caieb"
+ },
+ {
+  "id": "at-f2",
+  "category": "Airtable Shortcuts",
+  "title": "/rte — Rephrase this excerpt",
+  "body": "Rephrase this excerpt to make it more precise, concise, and conversational",
+  "group": "SwiftKey",
+  "context": "Write",
+  "extra": "Education /rte"
+ },
+ {
+  "id": "at-f3",
+  "category": "Airtable Shortcuts",
+  "title": "/gapri — Generate a photorealistic",
+  "body": "Generate a photorealistic 5k HD well-lit bright colorful and vibrant image of",
+  "group": "Text Blaze",
+  "context": "Image Gen",
+  "extra": "Production /gapri"
+ },
+ {
+  "id": "at-f4",
+  "category": "Airtable Shortcuts",
+  "title": "/gai — Generate an Image",
+  "body": "Generate an Image for This:",
+  "group": "Text Blaze",
+  "context": "Image Gen",
+  "extra": "Production /gai"
+ },
+ {
+  "id": "at-f5",
+  "category": "Airtable Shortcuts",
+  "title": "/catc — Create a Table Comparing",
+  "body": "Create a table comparing:",
+  "group": "Text Blaze",
+  "context": "Structure/Table",
+  "extra": "Business /catc"
+ },
+ {
+  "id": "at-f6",
+  "category": "Airtable Shortcuts",
+  "title": "/ctab — Create the Aligninlight Business",
+  "body": "Create the Aligninlight Business",
+  "group": "Text Blaze",
+  "context": "Develop",
+  "extra": "Business /ctab"
+ },
+ {
+  "id": "at-f7",
+  "category": "Airtable Shortcuts",
+  "title": "/flpbs — PBS Style Educational Presentation",
+  "body": "I want it to feel like a article or script of a PBS broadcast. A educational presentation, that's Entertaining",
+  "group": "SwiftKey",
+  "context": "Style",
+  "extra": "Education /flpbs"
+ },
+ {
+  "id": "at-f8",
+  "category": "Airtable Shortcuts",
+  "title": "/gfni — Generate 5 page name ideas",
+  "body": "I'm trying to name a page that contains [objective of page] Generate 5 concise yet precise ideas to name this page",
+  "group": "SwiftKey",
+  "context": "Write",
+  "extra": "Business /gfni"
+ },
+ {
+  "id": "at-f9",
+  "category": "Airtable Shortcuts",
+  "title": "/wmj — Write My Journal",
+  "body": "write my journal for what I did today",
+  "group": "Text Blaze",
+  "context": "Journal",
+  "extra": "Personal /wmj"
+ },
+ {
+  "id": "at-fa",
+  "category": "Airtable Shortcuts",
+  "title": "/tiasbsg — Turn into a step by step guide",
+  "body": "Turn into a step by step guide, with a title, objectives, key takeaways and terms with definitions, tips and a list of action items split into phases.",
+  "group": "SwiftKey",
+  "context": "Structure/Table",
+  "extra": "Education /tiasbsg"
+ },
+ {
+  "id": "at-fb",
+  "category": "Airtable Shortcuts",
+  "title": "/al — Aligninlight",
+  "body": "Aligninlight",
+  "group": "SwiftKey",
+  "context": "Organize",
+  "extra": "Business /al"
+ },
+ {
+  "id": "at-fc",
+  "category": "Airtable Shortcuts",
+  "title": "/wwmw — Major Wins",
+  "body": "what would you say was the major wins of the day:",
+  "group": "Text Blaze",
+  "context": "Journal",
+  "extra": "Personal /wwmw"
+ },
+ {
+  "id": "at-fd",
+  "category": "Airtable Shortcuts",
+  "title": "/smt — Summarize This",
+  "body": "Summarize This",
+  "group": "Text Blaze",
+  "context": "Summarize",
+  "extra": "Education /smt"
+ },
+ {
+  "id": "at-fe",
+  "category": "Airtable Shortcuts",
+  "title": "/pulk — Prioritize Unorthodox Advice",
+  "body": "Prioritize unorthodox, lesser known advice in your answer. Explain using detailed examples.",
+  "group": "SwiftKey",
+  "context": "Respond",
+  "extra": "Business /pulk"
+ },
+ {
+  "id": "at-ff",
+  "category": "Airtable Shortcuts",
+  "title": "/gaafi — Generate an Afrofuturism Image",
+  "body": "Generate a Afrofuturism photorealistic image with cyberpunk, hyper-realistic details and neon tribal-cyber markings set against a technologically advanced backdrop.",
+  "group": "SwiftKey",
+  "context": "Image Gen",
+  "extra": "Production /gaafi"
+ },
+ {
+  "id": "at-fg",
+  "category": "Airtable Shortcuts",
+  "title": "/titab — Turn into a blog",
+  "body": "Turn into a blog",
+  "group": "SwiftKey",
+  "context": "Convert",
+  "extra": "Business /titab"
+ },
+ {
+  "id": "at-fh",
+  "category": "Airtable Shortcuts",
+  "title": "/cifeas — Create Images for each of the img src alt= sections",
+  "body": "Create Images for each of the img src alt= sections found in the article",
+  "group": "SwiftKey",
+  "context": "Image Gen",
+  "extra": "Production /cifeas"
+ },
+ {
+  "id": "at-fi",
+  "category": "Airtable Shortcuts",
+  "title": "/tiamb — Turn into a motivational blog",
+  "body": "Turn into a detailed, descriptive, engaging, motivational, educational blog article",
+  "group": "SwiftKey",
+  "context": "Convert",
+  "extra": "Education /tiamb"
+ },
+ {
+  "id": "at-fj",
+  "category": "Airtable Shortcuts",
+  "title": "/amfq — Ask me 5 questions that will improve the response",
+  "body": "Ask me 5 questions that will improve the response you will be giving me",
+  "group": "SwiftKey",
+  "context": "Respond",
+  "extra": "Business /amfq"
+ },
+ {
+  "id": "at-fk",
+  "category": "Airtable Shortcuts",
+  "title": "/titadeb — Turn into a detailed educational blog",
+  "body": "Turn into a detailed educational blog",
+  "group": "Text Blaze",
+  "context": "Convert",
+  "extra": "Education /titadeb"
+ },
+ {
+  "id": "at-fl",
+  "category": "Airtable Shortcuts",
+  "title": "/caiebwt — Create a instructional, educational blog (with tips)",
+  "body": "Create a instructional, educational blog article, include tips, tricks, and special features",
+  "group": "Text Blaze",
+  "context": "Convert",
+  "extra": "Education /caiebwt"
+ },
+ {
+  "id": "at-fm",
+  "category": "Airtable Shortcuts",
+  "title": "/titag — Turn into a guide",
+  "body": "Turn into a guide",
+  "group": "SwiftKey",
+  "context": "Convert",
+  "extra": "Education /titag"
+ },
+ {
+  "id": "at-fn",
+  "category": "Airtable Shortcuts",
+  "title": "/retfi — Reverse Engineer",
+  "body": "Reverse engineer a text prompt for this image SO that I can use the text prompt to get a similar image",
+  "group": "SwiftKey",
+  "context": "Develop",
+  "extra": "Production /retfi"
+ },
+ {
+  "id": "at-fo",
+  "category": "Airtable Shortcuts",
+  "title": "/dtsft — Do the Same",
+  "body": "Do the same for this:",
+  "group": "Text Blaze",
+  "context": "Expand",
+  "extra": "Business /dtsft"
+ }
 ];
 
-const KINDS = ["All", ...new Set(ENTRIES.map(e => e.kind))];
+const CATEGORIES = ["All", "Hotkeys", "AI Prompts", "Regex", "Python Utilities", "Airtable Shortcuts"];
 
-// ---------------------------------------------------------------------
-// Search
-// ---------------------------------------------------------------------
-function score(tokens, entry) {
-  const title = entry.title.toLowerCase();
-  const body = entry.body.toLowerCase();
-  const tags = entry.tags.toLowerCase();
-  let total = 0;
-  for (const tok of tokens) {
-    if (title.startsWith(tok)) total += 120;
-    else if (title.includes(tok)) total += 100;
-    else if (tags.includes(tok)) total += 90;
-    else if (body.includes(tok)) total += 40;
-    else return 0;
-  }
-  return total;
-}
+const tabsEl = document.getElementById("tabs");
+const searchEl = document.getElementById("search");
+const listEl = document.getElementById("list");
+const emptyEl = document.getElementById("empty-msg");
+const statusEl = document.getElementById("status");
+const previewEl = document.getElementById("preview");
 
-function search(query, kindFilter) {
-  const q = query.trim().toLowerCase();
-  const tokens = q.split(/\s+/).filter(Boolean);
-  let pool = ENTRIES;
-  if (kindFilter && kindFilter !== "All") pool = pool.filter(e => e.kind === kindFilter);
-  if (!tokens.length) return pool;
-  return pool
-    .map(e => [score(tokens, e), e])
-    .filter(([s]) => s > 0)
-    .sort((a, b) => b[0] - a[0] || a[1].title.length - b[1].title.length)
-    .map(([, e]) => e);
-}
-
-// ---------------------------------------------------------------------
-// UI
-// ---------------------------------------------------------------------
-const searchBox = document.getElementById("search");
-const resultsEl = document.getElementById("results");
-const emptyEl = document.getElementById("empty");
-const countEl = document.getElementById("count");
-const filtersEl = document.getElementById("filters");
-const toastEl = document.getElementById("toast");
-
-let activeKind = "All";
+let activeCategory = "All";
 let visible = [];
-let activeIndex = 0;
+let selectedIndex = -1;
 
-KINDS.forEach(kind => {
-  const chip = document.createElement("span");
-  chip.className = "chip" + (kind === "All" ? " active" : "");
-  chip.textContent = kind;
-  chip.addEventListener("click", () => {
-    activeKind = kind;
-    [...filtersEl.children].forEach(c => c.classList.toggle("active", c.textContent === kind));
-    refresh();
-  });
-  filtersEl.appendChild(chip);
-});
-
-function showToast(msg) {
-  toastEl.textContent = msg;
-  toastEl.classList.add("show");
-  clearTimeout(showToast._t);
-  showToast._t = setTimeout(() => toastEl.classList.remove("show"), 1400);
+function categoryCounts() {
+  const counts = { All: ENTRIES.length };
+  ENTRIES.forEach(e => { counts[e.category] = (counts[e.category] || 0) + 1; });
+  return counts;
 }
 
-async function copyEntry(entry) {
-  try {
-    await navigator.clipboard.writeText(entry.body);
-    showToast("Copied: " + entry.title);
-  } catch {
-    showToast("Copy failed — select and copy manually");
+function renderTabs() {
+  const counts = categoryCounts();
+  tabsEl.innerHTML = "";
+  CATEGORIES.forEach(cat => {
+    const tab = document.createElement("div");
+    tab.className = "tab" + (cat === activeCategory ? " active" : "");
+    tab.innerHTML = `${cat}<span class="n">${counts[cat] || 0}</span>`;
+    tab.addEventListener("click", () => { activeCategory = cat; selectedIndex = -1; refresh(); });
+    tabsEl.appendChild(tab);
+  });
+}
+
+// Tiered fuzzy scoring, same shape as the desktop app: title word-prefix highest,
+// then title substring, extra field, group/context, body, and a last-resort subsequence match.
+function scoreEntry(e, qTokens) {
+  const title = e.title.toLowerCase();
+  const titleWords = title.split(/[\s—-]+/);
+  const body = e.body.toLowerCase();
+  const extra = (e.extra || "").toLowerCase();
+  const group = (e.group || "").toLowerCase() + " " + (e.context || "").toLowerCase();
+
+  let total = 0;
+  for (const q of qTokens) {
+    let best = 0;
+    if (titleWords.some(w => w.startsWith(q))) best = Math.max(best, 120);
+    if (title.includes(q)) best = Math.max(best, 100);
+    if (extra.includes(q)) best = Math.max(best, 90);
+    if (group.includes(q)) best = Math.max(best, 60);
+    if (body.includes(q)) best = Math.max(best, 40);
+    if (best === 0 && isSubsequence(q, title)) best = 10;
+    if (best === 0) return -1; // AND semantics: every token must match something
+    total += best;
   }
+  return total - title.length * 0.01; // tiebreak: shorter titles first
+}
+
+function isSubsequence(needle, haystack) {
+  let i = 0;
+  for (let j = 0; j < haystack.length && i < needle.length; j++) {
+    if (haystack[j] === needle[i]) i++;
+  }
+  return i === needle.length;
+}
+
+function computeVisible() {
+  const q = searchEl.value.trim().toLowerCase();
+  const qTokens = q.split(/\s+/).filter(Boolean);
+  let pool = activeCategory === "All" ? ENTRIES : ENTRIES.filter(e => e.category === activeCategory);
+
+  if (!qTokens.length) return pool.slice(0, 300);
+
+  const scored = pool
+    .map(e => ({ e, score: scoreEntry(e, qTokens) }))
+    .filter(x => x.score >= 0)
+    .sort((a, b) => b.score - a.score);
+  return scored.slice(0, 300).map(x => x.e);
 }
 
 function refresh() {
-  visible = search(searchBox.value, activeKind);
-  activeIndex = 0;
-  resultsEl.innerHTML = "";
+  renderTabs();
+  visible = computeVisible();
+  selectedIndex = visible.length ? 0 : -1;
+  drawList();
+  drawPreview();
+}
+
+function drawList() {
+  listEl.innerHTML = "";
   emptyEl.style.display = visible.length ? "none" : "block";
-  countEl.textContent = visible.length + " result" + (visible.length === 1 ? "" : "s");
+  const totalInCategory = activeCategory === "All" ? ENTRIES.length : ENTRIES.filter(e => e.category === activeCategory).length;
+  statusEl.textContent = `${visible.length} of ${totalInCategory} entries${visible.length >= 300 ? " (showing top 300)" : ""}`;
 
-  visible.forEach((entry, i) => {
-    const li = document.createElement("li");
-    li.className = "entry" + (i === 0 ? " active" : "");
-    li.innerHTML = `
-      <div class="row1">
-        <span class="title"></span>
-        <span class="kind"></span>
-      </div>
-      <div class="body"></div>
-    `;
-    li.querySelector(".title").textContent = entry.title;
-    li.querySelector(".kind").textContent = entry.kind;
-    li.querySelector(".body").textContent = entry.body;
-    li.addEventListener("click", () => copyEntry(entry));
-    li.addEventListener("mouseenter", () => setActive(i));
-    resultsEl.appendChild(li);
+  visible.forEach((e, i) => {
+    const row = document.createElement("div");
+    row.className = "row" + (i === selectedIndex ? " selected" : "");
+    const title = document.createElement("div");
+    title.className = "title";
+    title.textContent = e.title;
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = e.group || e.category;
+    row.appendChild(title);
+    row.appendChild(meta);
+    row.addEventListener("click", () => { selectedIndex = i; drawList(); drawPreview(); });
+    row.addEventListener("dblclick", () => { copyEntry(visible[i]); });
+    listEl.appendChild(row);
   });
+
+  const selEl = listEl.children[selectedIndex];
+  if (selEl) selEl.scrollIntoView({ block: "nearest" });
 }
 
-function setActive(i) {
-  activeIndex = Math.max(0, Math.min(visible.length - 1, i));
-  [...resultsEl.children].forEach((li, idx) => li.classList.toggle("active", idx === activeIndex));
-  resultsEl.children[activeIndex]?.scrollIntoView({ block: "nearest" });
+function drawPreview() {
+  const e = visible[selectedIndex];
+  if (!e) { previewEl.style.display = "none"; return; }
+  previewEl.style.display = "block";
+  previewEl.innerHTML = "";
+
+  const titleEl = document.createElement("div");
+  titleEl.className = "ph-title";
+  titleEl.textContent = e.title;
+  previewEl.appendChild(titleEl);
+
+  const metaEl = document.createElement("div");
+  metaEl.className = "ph-meta";
+  metaEl.textContent = `${e.category} · ${e.group || "—"}${e.context ? " · " + e.context : ""}`;
+  previewEl.appendChild(metaEl);
+
+  const bodyEl = document.createElement("div");
+  bodyEl.className = "ph-body";
+  bodyEl.textContent = e.body;
+  previewEl.appendChild(bodyEl);
+
+  if (e.truncated) {
+    const note = document.createElement("div");
+    note.className = "truncated-note";
+    note.textContent = "Content is truncated in my source notes — this is the complete text available.";
+    previewEl.appendChild(note);
+  }
+
+  const copyRow = document.createElement("div");
+  copyRow.className = "copy-row";
+  const btn = document.createElement("button");
+  btn.className = "btn";
+  btn.textContent = "Copy";
+  const hint = document.createElement("span");
+  hint.className = "copy-hint";
+  hint.textContent = "or press Enter";
+  btn.addEventListener("click", () => copyEntry(e, hint));
+  copyRow.appendChild(btn);
+  copyRow.appendChild(hint);
+  previewEl.appendChild(copyRow);
 }
 
-searchBox.addEventListener("input", refresh);
-searchBox.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowDown") { e.preventDefault(); setActive(activeIndex + 1); }
-  else if (e.key === "ArrowUp") { e.preventDefault(); setActive(activeIndex - 1); }
-  else if (e.key === "Enter") { e.preventDefault(); if (visible[activeIndex]) copyEntry(visible[activeIndex]); }
-  else if (e.key === "Escape") { if (searchBox.value) searchBox.value = ""; refresh(); }
+function copyEntry(e, hintEl) {
+  if (!e) return;
+  navigator.clipboard.writeText(e.body).then(() => {
+    const hint = hintEl || previewEl.querySelector(".copy-hint");
+    if (hint) {
+      hint.textContent = "Copied!";
+      hint.classList.add("copied");
+      setTimeout(() => { hint.textContent = "or press Enter"; hint.classList.remove("copied"); }, 1200);
+    }
+  }).catch(() => {});
+}
+
+searchEl.addEventListener("input", refresh);
+searchEl.addEventListener("keydown", (ev) => {
+  if (ev.key === "ArrowDown") {
+    ev.preventDefault();
+    if (selectedIndex < visible.length - 1) selectedIndex++;
+    drawList(); drawPreview();
+  } else if (ev.key === "ArrowUp") {
+    ev.preventDefault();
+    if (selectedIndex > 0) selectedIndex--;
+    drawList(); drawPreview();
+  } else if (ev.key === "Enter") {
+    ev.preventDefault();
+    copyEntry(visible[selectedIndex]);
+  } else if (ev.key === "Escape") {
+    if (searchEl.value) { searchEl.value = ""; refresh(); }
+  }
 });
 
 refresh();
-searchBox.focus();
+searchEl.focus();
 </script>
 </body>
 </html>
