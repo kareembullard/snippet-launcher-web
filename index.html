@@ -26,6 +26,20 @@
   .tab.active { background: var(--accent-dim); color: var(--accent); border-color: transparent; font-weight: 600; }
   .tab .n { opacity: .7; margin-left: .3rem; }
 
+  .filter-bar { margin-bottom: .8rem; }
+  .fg-label { display: block; font-size: .74rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: .02em; margin-bottom: .35rem; }
+  .pill-scroll { display: flex; flex-wrap: wrap; gap: .35rem; max-height: 84px; overflow-y: auto; }
+  .pill { border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); border-radius: 999px; padding: .2rem .65rem; font-size: .78rem; cursor: pointer; }
+  .pill.active { background: var(--accent-dim); color: var(--accent); border-color: transparent; font-weight: 600; }
+
+  .col-toggle { display: flex; align-items: center; gap: 1rem; font-size: .78rem; color: var(--text-dim); margin-bottom: .6rem; }
+  .col-toggle label { display: flex; align-items: center; gap: .3rem; cursor: pointer; }
+
+  .row.hk-row { display: grid; grid-template-columns: minmax(90px, .8fr) 2fr minmax(60px, .8fr); gap: .8rem; align-items: baseline; }
+  .row.hk-row .hk-shortcut { font-family: var(--mono); font-size: .82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row.hk-row .hk-action { font-size: .88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row.hk-row .hk-tool { font-size: .74rem; color: var(--text-dim); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
   input[type=search] { width: 100%; padding: .65rem .85rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); font-size: .98rem; margin-bottom: .8rem; }
   input[type=search]:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 
@@ -170,6 +184,8 @@
   <div class="privacy-note">This is my real reference catalog — 564 entries pulled from my personal notes and Airtable workspace, published deliberately. A few AI-prompt entries have truncated content in my source notes; those are shown with a note rather than filled in.</div>
 
   <div class="tabs" id="tabs"></div>
+  <div class="filter-bar" id="group-filter-bar" style="display:none"></div>
+  <div class="col-toggle" id="col-toggle" style="display:none"></div>
   <input type="search" id="search" placeholder="Search… (e.g. “split view”, “lazy match”, “smt”, “csv”)" autofocus>
   <div class="status" id="status"></div>
   <div class="list" id="list"></div>
@@ -5375,11 +5391,83 @@ const previewEl = document.getElementById("preview");
 let activeCategory = "All";
 let visible = [];
 let selectedIndex = -1;
+let groupFilter = new Set();
+
+const COL_KEY = "snippet-launcher-web:hk-columns";
+function loadColumns() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(COL_KEY) || "{}");
+    return { shortcut: raw.shortcut !== false, action: raw.action !== false, tool: raw.tool !== false };
+  } catch { return { shortcut: true, action: true, tool: true }; }
+}
+function saveColumns(cols) { localStorage.setItem(COL_KEY, JSON.stringify(cols)); }
+let hkColumns = loadColumns();
 
 function categoryCounts() {
   const counts = { All: ENTRIES.length };
   ENTRIES.forEach(e => { counts[e.category] = (counts[e.category] || 0) + 1; });
   return counts;
+}
+
+// "Ctrl + O — Quick open dialog" + body "Ctrl + O" -> action = "Quick open dialog"
+function hotkeyAction(e) {
+  const t = e.title || "";
+  const b = (e.body || "").trim();
+  if (b && t.startsWith(b)) {
+    const rest = t.slice(b.length).replace(/^\s*[—\-–]\s*/, "");
+    if (rest) return rest;
+  }
+  return t;
+}
+
+function renderGroupFilter() {
+  const bar = document.getElementById("group-filter-bar");
+  if (activeCategory === "All") { bar.style.display = "none"; bar.innerHTML = ""; return; }
+  const pool = ENTRIES.filter(e => e.category === activeCategory);
+  const groups = [...new Set(pool.map(e => e.group).filter(Boolean))].sort();
+  if (!groups.length) { bar.style.display = "none"; bar.innerHTML = ""; return; }
+  bar.style.display = "block";
+  bar.innerHTML = "";
+  const label = document.createElement("span");
+  label.className = "fg-label";
+  label.textContent = activeCategory === "Hotkeys" ? "Filter by tool" : "Filter by group";
+  bar.appendChild(label);
+  const scroll = document.createElement("div");
+  scroll.className = "pill-scroll";
+  groups.forEach(g => {
+    const pill = document.createElement("button");
+    pill.type = "button";
+    pill.className = "pill" + (groupFilter.has(g) ? " active" : "");
+    pill.textContent = g;
+    pill.addEventListener("click", () => {
+      if (groupFilter.has(g)) groupFilter.delete(g); else groupFilter.add(g);
+      pill.classList.toggle("active");
+      refresh();
+    });
+    scroll.appendChild(pill);
+  });
+  bar.appendChild(scroll);
+}
+
+function renderColumnToggle() {
+  const wrap = document.getElementById("col-toggle");
+  if (activeCategory !== "Hotkeys") { wrap.style.display = "none"; wrap.innerHTML = ""; return; }
+  wrap.style.display = "flex";
+  wrap.innerHTML = "";
+  [["shortcut", "Shortcut"], ["action", "Action"], ["tool", "Tool"]].forEach(([key, label]) => {
+    const l = document.createElement("label");
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = hkColumns[key];
+    cb.addEventListener("change", () => {
+      hkColumns[key] = cb.checked;
+      saveColumns(hkColumns);
+      drawList();
+    });
+    l.appendChild(cb);
+    l.appendChild(document.createTextNode(label));
+    wrap.appendChild(l);
+  });
 }
 
 function renderTabs() {
@@ -5389,7 +5477,7 @@ function renderTabs() {
     const tab = document.createElement("div");
     tab.className = "tab" + (cat === activeCategory ? " active" : "");
     tab.innerHTML = `${cat}<span class="n">${counts[cat] || 0}</span>`;
-    tab.addEventListener("click", () => { activeCategory = cat; selectedIndex = -1; refresh(); });
+    tab.addEventListener("click", () => { activeCategory = cat; selectedIndex = -1; groupFilter = new Set(); refresh(); });
     tabsEl.appendChild(tab);
   });
 }
@@ -5430,6 +5518,7 @@ function computeVisible() {
   const q = searchEl.value.trim().toLowerCase();
   const qTokens = q.split(/\s+/).filter(Boolean);
   let pool = activeCategory === "All" ? ENTRIES : ENTRIES.filter(e => e.category === activeCategory);
+  if (groupFilter.size) pool = pool.filter(e => groupFilter.has(e.group));
 
   if (!qTokens.length) return pool.slice(0, 300);
 
@@ -5442,6 +5531,8 @@ function computeVisible() {
 
 function refresh() {
   renderTabs();
+  renderGroupFilter();
+  renderColumnToggle();
   visible = computeVisible();
   selectedIndex = visible.length ? 0 : -1;
   drawList();
@@ -5454,17 +5545,40 @@ function drawList() {
   const totalInCategory = activeCategory === "All" ? ENTRIES.length : ENTRIES.filter(e => e.category === activeCategory).length;
   statusEl.textContent = `${visible.length} of ${totalInCategory} entries${visible.length >= 300 ? " (showing top 300)" : ""}`;
 
+  const isHotkeys = activeCategory === "Hotkeys";
   visible.forEach((e, i) => {
     const row = document.createElement("div");
     row.className = "row" + (i === selectedIndex ? " selected" : "");
-    const title = document.createElement("div");
-    title.className = "title";
-    title.textContent = e.title;
-    const meta = document.createElement("div");
-    meta.className = "meta";
-    meta.textContent = e.group || e.category;
-    row.appendChild(title);
-    row.appendChild(meta);
+    if (isHotkeys) {
+      row.classList.add("hk-row");
+      if (hkColumns.shortcut) {
+        const sc = document.createElement("div");
+        sc.className = "hk-shortcut";
+        sc.textContent = e.body;
+        row.appendChild(sc);
+      }
+      if (hkColumns.action) {
+        const ac = document.createElement("div");
+        ac.className = "hk-action";
+        ac.textContent = hotkeyAction(e);
+        row.appendChild(ac);
+      }
+      if (hkColumns.tool) {
+        const tl = document.createElement("div");
+        tl.className = "hk-tool";
+        tl.textContent = e.group || "";
+        row.appendChild(tl);
+      }
+    } else {
+      const title = document.createElement("div");
+      title.className = "title";
+      title.textContent = e.title;
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = e.group || e.category;
+      row.appendChild(title);
+      row.appendChild(meta);
+    }
     row.addEventListener("click", () => { selectedIndex = i; drawList(); drawPreview(); });
     row.addEventListener("dblclick", () => { copyEntry(visible[i]); });
     listEl.appendChild(row);
